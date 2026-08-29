@@ -14,10 +14,13 @@ function updateThemeButton(theme){
   const isDark=theme==='dark';
   const icon=button.querySelector('[data-theme-icon]');
   const label=button.querySelector('[data-theme-label]');
-  if(icon)icon.textContent=isDark?'☀':'☾';
-  if(label)label.textContent=isDark?'日间':'夜间';
-  button.setAttribute('aria-label',isDark?'切换到日间模式':'切换到夜间模式');
-  button.setAttribute('title',isDark?'切换到日间模式':'切换到夜间模式');
+
+  // The button displays the CURRENT theme, while its accessible label
+  // describes the action that will happen when it is pressed.
+  if(icon)icon.textContent=isDark?'☾':'☀';
+  if(label)label.textContent=isDark?'夜间':'日间';
+  button.setAttribute('aria-label',isDark?'当前为夜间模式，点击切换到日间模式':'当前为日间模式，点击切换到夜间模式');
+  button.setAttribute('title',isDark?'当前：夜间模式 · 点击切换到日间':'当前：日间模式 · 点击切换到夜间');
   button.setAttribute('aria-pressed',String(isDark));
 }
 
