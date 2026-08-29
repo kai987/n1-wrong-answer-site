@@ -11,16 +11,16 @@ function getPreferredTheme(){
 function sunIcon(){
   return `
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <circle cx="12" cy="12" r="4" fill="currentColor"></circle>
-      <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-        <path d="M12 2.5v2.2"></path>
-        <path d="M12 19.3v2.2"></path>
-        <path d="M2.5 12h2.2"></path>
-        <path d="M19.3 12h2.2"></path>
-        <path d="m5.28 5.28 1.56 1.56"></path>
-        <path d="m17.16 17.16 1.56 1.56"></path>
-        <path d="m18.72 5.28-1.56 1.56"></path>
-        <path d="m6.84 17.16-1.56 1.56"></path>
+      <circle cx="12" cy="12" r="3.6" fill="none" stroke="currentColor" stroke-width="2"></circle>
+      <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M12 2.5v2.1"></path>
+        <path d="M12 19.4v2.1"></path>
+        <path d="M2.5 12h2.1"></path>
+        <path d="M19.4 12h2.1"></path>
+        <path d="m5.28 5.28 1.49 1.49"></path>
+        <path d="m17.23 17.23 1.49 1.49"></path>
+        <path d="m18.72 5.28-1.49 1.49"></path>
+        <path d="m6.77 17.23-1.49 1.49"></path>
       </g>
     </svg>`;
 }
@@ -28,7 +28,7 @@ function sunIcon(){
 function moonIcon(){
   return `
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path d="M20.2 15.2A8.5 8.5 0 0 1 8.8 3.8a8.7 8.7 0 1 0 11.4 11.4Z" fill="currentColor"></path>
+      <path d="M20.1 15.25A8.45 8.45 0 0 1 8.75 3.9 8.65 8.65 0 1 0 20.1 15.25Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
     </svg>`;
 }
 
