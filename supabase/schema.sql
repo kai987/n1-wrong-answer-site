@@ -4,7 +4,8 @@
 create table if not exists public.wrong_answers (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
-  source_exam text not null default 'JLPT N1 2025-12',
+  -- Exam source is stored separately so Q3 in 2025-12 and Q3 in 2025-07 are distinct records.
+  source_exam text not null default '2025-12',
   question_number integer not null,
   category text not null check (category in ('文字・語彙','文法','読解')),
   subtype text,
@@ -33,6 +34,8 @@ create index if not exists wrong_answers_user_next_review_idx
   on public.wrong_answers (user_id, next_review_at);
 create index if not exists wrong_answers_user_category_idx
   on public.wrong_answers (user_id, category);
+create index if not exists wrong_answers_user_source_exam_idx
+  on public.wrong_answers (user_id, source_exam);
 
 alter table public.wrong_answers enable row level security;
 
