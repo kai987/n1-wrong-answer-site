@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>JLPT N1 错题复习｜2025年12月</title>
+  <title>JLPT N1 错题复习</title>
   <script>
     (function(){
       try{
@@ -29,7 +29,7 @@
     <div>
       <p class="eyebrow">Cloud Sync</p>
       <h1>JLPT N1 错题复习</h1>
-      <p class="auth-copy">登录后，错题、解析和间隔复习进度会同步到 Supabase，可在 Mac、手机和其他浏览器继续学习。</p>
+      <p class="auth-copy">登录后，不同考试年月的错题、解析和间隔复习进度都会同步到 Supabase，可在 Mac、手机和其他浏览器继续学习。</p>
     </div>
     <form id="authForm" class="auth-form">
       <div class="field"><label for="authEmail">邮箱</label><input class="control" id="authEmail" type="email" autocomplete="email" required placeholder="you@example.com"></div>
@@ -47,7 +47,7 @@
   <div class="topbar">
     <div class="brand">
       <h1>JLPT N1 错题复习</h1>
-      <p>2025年12月诊断卷 · 云端复习、解释、更新与间隔重复</p>
+      <p>多期试卷 · 云端复习、解释、更新与间隔重复</p>
     </div>
     <div class="top-actions">
       <span class="sync-state" id="syncState">正在连接云端…</span>
@@ -68,13 +68,16 @@
       <button class="tab" data-tab="edit">添加 / 编辑</button>
     </div>
     <div class="filters">
+      <select class="control" id="sourceFilter" aria-label="试卷来源筛选">
+        <option value="all">全部来源</option>
+      </select>
       <select class="control" id="categoryFilter" aria-label="分类筛选">
         <option value="all">全部分类</option>
         <option value="文字・語彙">文字・語彙</option>
         <option value="文法">文法</option>
         <option value="読解">読解</option>
       </select>
-      <input class="control search" id="searchInput" type="search" placeholder="搜索题号、单词、语法…">
+      <input class="control search" id="searchInput" type="search" placeholder="搜索来源、题号、单词、语法…">
     </div>
   </div>
 
@@ -98,6 +101,7 @@
         <h3 id="editorTitle">添加错题</h3>
         <form id="editorForm">
           <input type="hidden" id="editId">
+          <div class="field"><label>试卷来源</label><input class="control" id="qSourceExam" required placeholder="例如 2025-12" inputmode="numeric"></div>
           <div class="field"><label>题号</label><input class="control" id="qNumber" required placeholder="例如 27"></div>
           <div class="field"><label>分类</label><select class="control" id="qCategory"><option>文字・語彙</option><option>文法</option><option>読解</option></select></div>
           <div class="field"><label>题型</label><input class="control" id="qSubtype" placeholder="例如 文法选择 / 词语用法"></div>
@@ -117,10 +121,10 @@
       </div>
       <div class="card form-card">
         <h3>云端数据</h3>
-        <p class="note">登录后所有修改直接写入 Supabase Postgres。RLS 会限制每个用户只能读写自己的错题。</p>
+        <p class="note">每道题都会保存“试卷来源”，例如 2025-12、2025-07。相同题号可以存在于不同来源中，并可在上方按来源筛选。</p>
         <div class="review-actions">
           <button class="btn" id="resetProgressBtn" type="button">重置复习进度</button>
-          <button class="btn danger" id="resetAllBtn" type="button">恢复初始35题</button>
+          <button class="btn danger" id="resetAllBtn" type="button">恢复 2025-12 初始35题</button>
         </div>
         <div style="height:16px"></div>
         <h3>复习规则</h3>
@@ -128,7 +132,7 @@
       </div>
     </div>
   </section>
-  <p class="footer-note">初始题库：2025年12月 JLPT N1 非听力错题 35 题。問題7（41–43）使用后续核对的还原版选项。</p>
+  <p class="footer-note">初始题库来源：2025-12 · JLPT N1 非听力错题 35 题。問題7（41–43）使用后续核对的还原版选项。</p>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -136,6 +140,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <script src="data.js"></script>
-<script src="app.js"></script>
+<script src="app.js?v=5"></script>
 </body>
 </html>
