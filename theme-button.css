@@ -1,19 +1,15 @@
 .theme-toggle{
-  width:42px;
-  min-width:42px;
-  height:42px;
+  width:44px;
+  min-width:44px;
+  height:44px;
   padding:0;
   gap:0;
-  border-radius:12px;
-}
-
-.theme-toggle [data-theme-label]{
-  display:none;
+  border-radius:999px;
 }
 
 .theme-toggle-icon{
-  width:20px;
-  height:20px;
+  width:22px;
+  height:22px;
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -21,22 +17,21 @@
 }
 
 .theme-toggle-icon svg{
-  width:20px;
-  height:20px;
+  width:22px;
+  height:22px;
   display:block;
 }
 
 @media(max-width:560px){
   .theme-toggle{
-    width:40px;
-    min-width:40px;
-    height:40px;
-    padding:0;
+    width:42px;
+    min-width:42px;
+    height:42px;
   }
 
   .theme-toggle-icon,
   .theme-toggle-icon svg{
-    width:19px;
-    height:19px;
+    width:21px;
+    height:21px;
   }
 }
