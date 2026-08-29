@@ -5,20 +5,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>JLPT N1 错题复习｜2025年12月</title>
   <link rel="stylesheet" href="styles.css" />
-
 </head>
 <body>
-<div class="app" id="app">
+<div class="auth-shell" id="authShell">
+  <section class="auth-card card">
+    <div>
+      <p class="eyebrow">Cloud Sync</p>
+      <h1>JLPT N1 错题复习</h1>
+      <p class="auth-copy">登录后，错题、解析和间隔复习进度会同步到 Supabase，可在 Mac、手机和其他浏览器继续学习。</p>
+    </div>
+    <form id="authForm" class="auth-form">
+      <div class="field"><label for="authEmail">邮箱</label><input class="control" id="authEmail" type="email" autocomplete="email" required placeholder="you@example.com"></div>
+      <div class="field"><label for="authPassword">密码</label><input class="control" id="authPassword" type="password" autocomplete="current-password" minlength="6" required placeholder="至少 6 位"></div>
+      <div class="auth-actions">
+        <button class="btn primary" type="submit" id="signInBtn">登录</button>
+        <button class="btn" type="button" id="signUpBtn">注册</button>
+      </div>
+      <p class="note" id="authMessage">首次使用请注册；如果 Supabase 开启了邮箱确认，请先点击验证邮件中的链接。</p>
+    </form>
+  </section>
+</div>
+
+<div class="app is-hidden" id="app">
   <div class="topbar">
     <div class="brand">
       <h1>JLPT N1 错题复习</h1>
-      <p>2025年12月诊断卷 · 复习、解释、更新、间隔重复都放在一个页面里</p>
+      <p>2025年12月诊断卷 · 云端复习、解释、更新与间隔重复</p>
     </div>
     <div class="top-actions">
+      <span class="sync-state" id="syncState">正在连接云端…</span>
       <button class="btn" id="exportBtn">导出 JSON</button>
       <label class="btn" for="importFile" style="display:inline-flex;align-items:center">导入 JSON</label>
       <input id="importFile" type="file" accept="application/json" hidden>
       <button class="btn primary" id="addBtn">＋ 添加错题</button>
+      <button class="btn" id="signOutBtn">退出登录</button>
     </div>
   </div>
 
@@ -79,15 +99,15 @@
         </form>
       </div>
       <div class="card form-card">
-        <h3>数据管理</h3>
-        <p class="note">所有修改默认保存在当前浏览器的 localStorage。建议定期导出 JSON 备份；换电脑或清理浏览器数据后，可以再导入恢复。</p>
+        <h3>云端数据</h3>
+        <p class="note">登录后所有修改直接写入 Supabase Postgres。RLS 会限制每个用户只能读写自己的错题。</p>
         <div class="review-actions">
           <button class="btn" id="resetProgressBtn" type="button">重置复习进度</button>
           <button class="btn danger" id="resetAllBtn" type="button">恢复初始35题</button>
         </div>
         <div style="height:16px"></div>
         <h3>复习规则</h3>
-        <p class="note">点“已掌握”后，下一次按 1 → 3 → 7 → 14 → 30 天间隔出现；点“还需复习”则次日重新出现。连续推进会逐步降低频率。</p>
+        <p class="note">点“已掌握”后，下一次按 1 → 3 → 7 → 14 → 30 天间隔出现；点“还需复习”则次日重新出现。</p>
       </div>
     </div>
   </section>
@@ -95,8 +115,9 @@
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
 <script src="data.js"></script>
 <script src="app.js"></script>
-
 </body>
 </html>
