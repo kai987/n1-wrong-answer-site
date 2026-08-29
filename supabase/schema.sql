@@ -39,23 +39,23 @@ alter table public.wrong_answers enable row level security;
 drop policy if exists "Users can view own wrong answers" on public.wrong_answers;
 create policy "Users can view own wrong answers"
   on public.wrong_answers for select
-  using (auth.uid() = user_id);
+  using ((select auth.uid()) = user_id);
 
 drop policy if exists "Users can insert own wrong answers" on public.wrong_answers;
 create policy "Users can insert own wrong answers"
   on public.wrong_answers for insert
-  with check (auth.uid() = user_id);
+  with check ((select auth.uid()) = user_id);
 
 drop policy if exists "Users can update own wrong answers" on public.wrong_answers;
 create policy "Users can update own wrong answers"
   on public.wrong_answers for update
-  using (auth.uid() = user_id)
-  with check (auth.uid() = user_id);
+  using ((select auth.uid()) = user_id)
+  with check ((select auth.uid()) = user_id);
 
 drop policy if exists "Users can delete own wrong answers" on public.wrong_answers;
 create policy "Users can delete own wrong answers"
   on public.wrong_answers for delete
-  using (auth.uid() = user_id);
+  using ((select auth.uid()) = user_id);
 
 create or replace function public.set_updated_at()
 returns trigger
