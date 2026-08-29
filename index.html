@@ -4,10 +4,26 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>JLPT N1 错题复习｜2025年12月</title>
+  <script>
+    (function(){
+      try{
+        const saved=localStorage.getItem('n1-wrong-answer-theme');
+        const theme=(saved==='light'||saved==='dark')?saved:(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+        document.documentElement.dataset.theme=theme;
+      }catch(_error){
+        document.documentElement.dataset.theme='light';
+      }
+    })();
+  </script>
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="auth.css" />
 </head>
 <body>
+<button class="theme-toggle btn" id="themeToggle" type="button" aria-label="切换昼夜模式" aria-pressed="false">
+  <span class="theme-toggle-icon" data-theme-icon aria-hidden="true">☾</span>
+  <span data-theme-label>夜间</span>
+</button>
+
 <div class="auth-shell" id="authShell">
   <section class="auth-card card">
     <div>
@@ -116,6 +132,7 @@
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+<script src="theme.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <script src="data.js"></script>
