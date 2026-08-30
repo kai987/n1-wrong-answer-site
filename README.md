@@ -13,7 +13,7 @@
 ## Supabase 项目
 项目 ref：`flpmblfscgcbrprwwckz`
 
-前端只使用 Supabase publishable key。该 key 设计为可公开用于浏览器客户端；真正的数据权限由登录状态和 RLS 控制。
+前端只使用 Supabase publishable key。该 key 设计为可公开用于浏览器客户端；真正的数据权限由登录状态、Postgres grants 和 RLS 控制。绝不要把 `service_role` / secret key 放进前端或 GitHub 仓库。
 
 ## 首次配置数据库
 1. 打开 Supabase Dashboard。
@@ -32,6 +32,17 @@
 5. 所有数据写入 Supabase，可跨设备同步。
 6. 仍可通过“导出 JSON / 导入 JSON”做离线备份。
 
+## 安全设计
+- `anon` 对 `wrong_answers` 没有表权限；`authenticated` 只有 SELECT / INSERT / UPDATE / DELETE。
+- 所有 CRUD RLS policy 都限定为 `authenticated`，并要求 `auth.uid() = user_id`。
+- JSON 导入先在浏览器校验文件大小、题数、来源、分类、字段长度、选项数量与日期格式。
+- 云端导入通过 `replace_wrong_answers(jsonb)` RPC 在一个 Postgres transaction 中完成；任何错误都会回滚，不会出现“旧数据已删但新数据未写入”的状态。
+- 数据库本身还有 CHECK constraints，防止绕过前端直接提交非法记录。
+- 页面启用了 Content Security Policy，脚本只允许本站与 jsDelivr；Supabase SDK 使用固定版本，而不是浮动 `@2`。
+- CSP 不允许内联脚本、object/frame/worker/media，减少 XSS 成功后的可利用面。
+- 前端只保存主题偏好和 Supabase Auth 正常会话，不保存密码。
+- 新注册在前端要求至少 12 位密码；已有账号登录不受该前端限制影响。
+
 ## 间隔复习
 - 还需复习：次日再次出现。
 - 已掌握：1 → 3 → 7 → 14 → 30 天逐步拉长。
@@ -39,7 +50,7 @@
 ## GitHub Pages
 仓库包含 `.github/workflows/deploy-pages.yml`。推送到 `main` 后会自动部署。
 
-预计站点地址：
+站点地址：
 `https://kai987.github.io/n1-wrong-answer-site/`
 
 ## 数据说明
