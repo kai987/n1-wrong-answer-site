@@ -1,15 +1,22 @@
 .theme-toggle{
-  width:44px;
-  min-width:44px;
-  height:44px;
+  position:static;
+  top:auto;
+  right:auto;
+  z-index:auto;
+  width:42px;
+  min-width:42px;
+  height:42px;
   padding:0;
   gap:0;
   border-radius:999px;
+  box-shadow:none;
+  backdrop-filter:none;
+  flex:0 0 42px;
 }
 
 .theme-toggle-icon{
-  width:22px;
-  height:22px;
+  width:21px;
+  height:21px;
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -17,21 +24,22 @@
 }
 
 .theme-toggle-icon svg{
-  width:22px;
-  height:22px;
+  width:21px;
+  height:21px;
   display:block;
 }
 
 @media(max-width:560px){
   .theme-toggle{
-    width:42px;
-    min-width:42px;
-    height:42px;
+    width:40px;
+    min-width:40px;
+    height:40px;
+    flex-basis:40px;
   }
 
   .theme-toggle-icon,
   .theme-toggle-icon svg{
-    width:21px;
-    height:21px;
+    width:20px;
+    height:20px;
   }
 }
