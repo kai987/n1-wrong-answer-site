@@ -16,15 +16,11 @@
     })();
   </script>
   <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="theme-button.css?v=4" />
+  <link rel="stylesheet" href="theme-button.css?v=5" />
   <link rel="stylesheet" href="auth.css" />
-  <link rel="stylesheet" href="header.css?v=1" />
+  <link rel="stylesheet" href="header.css?v=2" />
 </head>
 <body>
-<button class="theme-toggle btn" id="themeToggle" type="button" aria-label="切换昼夜模式" aria-pressed="false">
-  <span class="theme-toggle-icon" data-theme-icon aria-hidden="true"></span>
-</button>
-
 <div class="auth-shell" id="authShell">
   <section class="auth-card card">
     <div>
@@ -63,6 +59,9 @@
         <input id="importFile" type="file" accept="application/json" hidden>
         <button class="btn primary" id="addBtn">＋ 添加错题</button>
         <button class="btn" id="signOutBtn">退出登录</button>
+        <button class="theme-toggle btn" id="themeToggle" type="button" aria-label="切换昼夜模式" aria-pressed="false">
+          <span class="theme-toggle-icon" data-theme-icon aria-hidden="true"></span>
+        </button>
       </div>
     </div>
   </header>
