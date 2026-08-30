@@ -2,19 +2,11 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; connect-src 'self' https://flpmblfscgcbrprwwckz.supabase.co wss://flpmblfscgcbrprwwckz.supabase.co; img-src 'self' data: blob:; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'; worker-src 'none'; media-src 'none'; manifest-src 'self'; upgrade-insecure-requests" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>JLPT N1 错题复习</title>
-  <script>
-    (function(){
-      try{
-        const saved=localStorage.getItem('n1-wrong-answer-theme');
-        const theme=(saved==='light'||saved==='dark')?saved:(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
-        document.documentElement.dataset.theme=theme;
-      }catch(_error){
-        document.documentElement.dataset.theme='light';
-      }
-    })();
-  </script>
+  <script src="theme-init.js?v=1"></script>
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="theme-button.css?v=5" />
   <link rel="stylesheet" href="auth.css" />
@@ -30,7 +22,7 @@
     </div>
     <form id="authForm" class="auth-form">
       <div class="field"><label for="authEmail">邮箱</label><input class="control" id="authEmail" type="email" autocomplete="email" required placeholder="you@example.com"></div>
-      <div class="field"><label for="authPassword">密码</label><input class="control" id="authPassword" type="password" autocomplete="current-password" minlength="6" required placeholder="至少 6 位"></div>
+      <div class="field"><label for="authPassword">密码</label><input class="control" id="authPassword" type="password" autocomplete="current-password" minlength="6" required placeholder="已有账号用原密码；新注册至少 12 位"></div>
       <div class="auth-actions">
         <button class="btn primary" type="submit" id="signInBtn">登录</button>
         <button class="btn" type="button" id="signUpBtn">注册</button>
@@ -144,9 +136,10 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="theme.js?v=4"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.4"></script>
 <script src="config.js"></script>
 <script src="data.js"></script>
 <script src="app.js?v=5"></script>
+<script src="security.js?v=1"></script>
 </body>
 </html>
