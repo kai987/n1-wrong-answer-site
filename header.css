@@ -45,7 +45,6 @@
   gap:8px;
   min-height:24px;
   max-width:100%;
-  padding-right:52px;
 }
 
 .sync-dot{
@@ -94,6 +93,11 @@
   cursor:pointer;
 }
 
+.top-actions .theme-toggle{
+  padding:0;
+  border-radius:999px;
+}
+
 #addBtn{
   padding-left:14px;
   padding-right:14px;
@@ -103,7 +107,6 @@
   .topbar{
     grid-template-columns:1fr;
     gap:16px;
-    padding-top:42px;
   }
 
   .header-side{
@@ -113,7 +116,6 @@
 
   .header-status{
     justify-content:flex-start;
-    padding-right:0;
   }
 
   .top-actions{
@@ -154,10 +156,20 @@
     width:100%;
     min-width:0;
   }
+
+  .top-actions .theme-toggle{
+    width:40px;
+    min-width:40px;
+    justify-self:start;
+  }
 }
 
 @media(max-width:420px){
   .top-actions{
     grid-template-columns:1fr;
+  }
+
+  .top-actions .theme-toggle{
+    width:40px;
   }
 }
