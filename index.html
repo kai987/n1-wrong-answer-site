@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="theme-button.css?v=4" />
   <link rel="stylesheet" href="auth.css" />
+  <link rel="stylesheet" href="header.css?v=1" />
 </head>
 <body>
 <button class="theme-toggle btn" id="themeToggle" type="button" aria-label="切换昼夜模式" aria-pressed="false">
@@ -44,20 +45,27 @@
 </div>
 
 <div class="app is-hidden" id="app">
-  <div class="topbar">
+  <header class="topbar">
     <div class="brand">
       <h1>JLPT N1 错题复习</h1>
       <p>多期试卷 · 云端复习、解释、更新与间隔重复</p>
     </div>
-    <div class="top-actions">
-      <span class="sync-state" id="syncState">正在连接云端…</span>
-      <button class="btn" id="exportBtn">导出 JSON</button>
-      <label class="btn" for="importFile" style="display:inline-flex;align-items:center">导入 JSON</label>
-      <input id="importFile" type="file" accept="application/json" hidden>
-      <button class="btn primary" id="addBtn">＋ 添加错题</button>
-      <button class="btn" id="signOutBtn">退出登录</button>
+
+    <div class="header-side">
+      <div class="header-status" aria-live="polite">
+        <span class="sync-dot" aria-hidden="true"></span>
+        <span class="sync-state" id="syncState">正在连接云端…</span>
+      </div>
+
+      <div class="top-actions">
+        <button class="btn" id="exportBtn">导出 JSON</button>
+        <label class="btn import-btn" for="importFile">导入 JSON</label>
+        <input id="importFile" type="file" accept="application/json" hidden>
+        <button class="btn primary" id="addBtn">＋ 添加错题</button>
+        <button class="btn" id="signOutBtn">退出登录</button>
+      </div>
     </div>
-  </div>
+  </header>
 
   <div class="stats" id="stats"></div>
 
