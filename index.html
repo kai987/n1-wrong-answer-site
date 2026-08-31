@@ -63,9 +63,9 @@
 
   <div class="toolbar">
     <div class="tabs" role="tablist" aria-label="页面切换">
-      <button class="tab active" data-tab="review">今日复习</button>
-      <button class="tab" data-tab="all">全部错题</button>
-      <button class="tab" data-tab="edit">添加 / 编辑</button>
+      <button class="tab active" id="tab-review" data-tab="review" role="tab" aria-controls="panel-review" aria-selected="true">今日复习</button>
+      <button class="tab" id="tab-all" data-tab="all" role="tab" aria-controls="panel-all" aria-selected="false" tabindex="-1">全部错题</button>
+      <button class="tab" id="tab-edit" data-tab="edit" role="tab" aria-controls="panel-edit" aria-selected="false" tabindex="-1">添加 / 编辑</button>
     </div>
     <div class="filters">
       <select class="control" id="sourceFilter" aria-label="试卷来源筛选">
@@ -81,7 +81,7 @@
     </div>
   </div>
 
-  <section class="panel active" id="panel-review">
+  <section class="panel active" id="panel-review" role="tabpanel" aria-labelledby="tab-review">
     <div class="review-layout">
       <div id="reviewMain"></div>
       <aside class="card side">
@@ -91,11 +91,11 @@
     </div>
   </section>
 
-  <section class="panel" id="panel-all">
+  <section class="panel" id="panel-all" role="tabpanel" aria-labelledby="tab-all" hidden>
     <div id="questionList" class="list"></div>
   </section>
 
-  <section class="panel" id="panel-edit">
+  <section class="panel" id="panel-edit" role="tabpanel" aria-labelledby="tab-edit" hidden>
     <div class="editor">
       <div class="card form-card">
         <h3 id="editorTitle">添加错题</h3>
@@ -140,9 +140,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.4"></script>
 <script src="config.js"></script>
 <script src="data.js"></script>
+<script src="seed-bridge.js?v=1"></script>
 <script src="option-explanations.js?v=1"></script>
-<script src="app.js?v=5"></script>
-<script src="option-analysis.js?v=3"></script>
-<script src="security.js?v=2"></script>
+<script type="module" src="js/main.js?v=1"></script>
 </body>
 </html>
