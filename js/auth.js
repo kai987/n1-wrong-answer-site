@@ -1,3 +1,4 @@
+import { AUTH_POLICY } from './constants.js';
 import { supabase } from './supabase.js';
 import { authMessage } from './utils.js';
 
@@ -13,8 +14,13 @@ export async function signIn(email, password) {
 }
 
 export async function signUp(email, password) {
-  if (password.length < 12) {
-    authMessage('注册密码至少需要 12 位；已有账号登录不受影响。', true);
+  if (!AUTH_POLICY.registrationEnabled) {
+    authMessage('当前不开放新账号注册。', true);
+    return false;
+  }
+
+  if (password.length < AUTH_POLICY.registrationMinPasswordLength) {
+    authMessage(`注册密码至少需要 ${AUTH_POLICY.registrationMinPasswordLength} 位；已有账号登录不受影响。`, true);
     return false;
   }
 
