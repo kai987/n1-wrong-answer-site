@@ -13,6 +13,7 @@ create table if not exists public.wrong_answers (
   stem text not null,
   context text,
   options jsonb not null,
+  option_explanations jsonb not null default '["","","",""]'::jsonb,
   user_answer integer not null check (user_answer between 1 and 4),
   correct_answer integer not null check (correct_answer between 1 and 4),
   explanation text not null,
@@ -31,9 +32,13 @@ create table if not exists public.wrong_answers (
 );
 
 alter table public.wrong_answers
+  add column if not exists option_explanations jsonb not null default '["","","",""]'::jsonb;
+
+alter table public.wrong_answers
   drop constraint if exists wrong_answers_source_exam_format,
   drop constraint if exists wrong_answers_question_number_range,
   drop constraint if exists wrong_answers_options_count,
+  drop constraint if exists wrong_answers_option_explanations_count,
   drop constraint if exists wrong_answers_text_lengths,
   drop constraint if exists wrong_answers_page_plain_text;
 
@@ -44,6 +49,8 @@ alter table public.wrong_answers
     check (question_number between 1 and 999),
   add constraint wrong_answers_options_count
     check (jsonb_typeof(options) = 'array' and jsonb_array_length(options) = 4),
+  add constraint wrong_answers_option_explanations_count
+    check (jsonb_typeof(option_explanations) = 'array' and jsonb_array_length(option_explanations) = 4),
   add constraint wrong_answers_text_lengths
     check (
       char_length(coalesce(subtype,'')) <= 120
@@ -169,24 +176,37 @@ begin
     raise exception 'one or more options are invalid';
   end if;
 
+  if exists (select 1 from jsonb_array_elements(p_items) as e where jsonb_typeof(e->'option_explanations') <> 'array') then
+    raise exception 'option_explanations must be an array';
+  end if;
+  if exists (select 1 from jsonb_array_elements(p_items) as e where jsonb_array_length(e->'option_explanations') <> 4) then
+    raise exception 'each item must contain exactly four option explanations';
+  end if;
+  if exists (
+    select 1 from jsonb_array_elements(p_items) as e, jsonb_array_elements(e->'option_explanations') as x
+    where jsonb_typeof(x) <> 'string' or length(x #>> '{}') > 10000
+  ) then
+    raise exception 'one or more option explanations are invalid';
+  end if;
+
   delete from public.wrong_answers where user_id = v_user_id;
 
   insert into public.wrong_answers (
     user_id, source_exam, question_number, category, subtype, page,
-    stem, context, options, user_answer, correct_answer,
+    stem, context, options, option_explanations, user_answer, correct_answer,
     explanation, wrong_reason, key_point, source_note,
     review_step, review_count, last_result, mastered, next_review_at
   )
   select
     v_user_id, x.source_exam, x.question_number, x.category,
     nullif(x.subtype,''), nullif(x.page,''), x.stem, nullif(x.context,''),
-    x.options, x.user_answer, x.correct_answer, x.explanation, x.wrong_reason,
+    x.options, x.option_explanations, x.user_answer, x.correct_answer, x.explanation, x.wrong_reason,
     nullif(x.key_point,''), nullif(x.source_note,''), coalesce(x.review_step,0),
     coalesce(x.review_count,0), x.last_result, coalesce(x.mastered,false),
     coalesce(x.next_review_at,current_date)
   from jsonb_to_recordset(p_items) as x(
     source_exam text, question_number integer, category text, subtype text, page text,
-    stem text, context text, options jsonb, user_answer integer, correct_answer integer,
+    stem text, context text, options jsonb, option_explanations jsonb, user_answer integer, correct_answer integer,
     explanation text, wrong_reason text, key_point text, source_note text,
     review_step integer, review_count integer, last_result text, mastered boolean,
     next_review_at date
