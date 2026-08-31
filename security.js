@@ -9,6 +9,7 @@
     stem:10000,
     context:50000,
     option:2000,
+    optionExplanation:10000,
     explanation:20000,
     wrongReason:20000,
     keyPoint:5000,
@@ -58,6 +59,7 @@
     const sourceExam=normalizeSource(raw.sourceExam??raw.source_exam??'2025-12');
     if(!SOURCE_RE.test(sourceExam))throw new Error(`${label}试卷来源应为 YYYY-MM，例如 2025-12`);
 
+    const number=integer(raw.number??raw.question_number,`${label}题号`,1,999);
     const category=text(raw.category,`${label}分类`,{required:true,max:20});
     if(!CATEGORIES.has(category))throw new Error(`${label}分类无效`);
 
@@ -67,22 +69,41 @@
     const page=text(raw.page,`${label}页码`,{max:LIMITS.page});
     if(/[<>]/.test(page))throw new Error(`${label}页码包含非法字符`);
 
+    const userAnswer=integer(raw.userAnswer??raw.user_answer,`${label}错误选项`,1,4);
+    const correctAnswer=integer(raw.correctAnswer??raw.correct_answer,`${label}正确选项`,1,4);
+    const explanation=text(raw.explanation,`${label}正确选项解说`,{required:true,max:LIMITS.explanation});
+    const wrongReason=text(raw.wrongReason??raw.wrong_reason,`${label}错误选项解说`,{required:true,max:LIMITS.wrongReason});
+
+    const rawOptionExplanations=raw.optionExplanations??raw.option_explanations;
+    let optionExplanations;
+    if(rawOptionExplanations===undefined||rawOptionExplanations===null){
+      optionExplanations=typeof window.getOptionExplanations==='function'
+        ? window.getOptionExplanations({...raw,sourceExam,number,category,options,userAnswer,correctAnswer,explanation,wrongReason})
+        : ['','','',''];
+    }else{
+      if(!Array.isArray(rawOptionExplanations)||rawOptionExplanations.length!==4){
+        throw new Error(`${label}逐项解释必须正好包含 4 项`);
+      }
+      optionExplanations=rawOptionExplanations.map((value,i)=>text(value,`${label}选项 ${i+1} 解释`,{max:LIMITS.optionExplanation}));
+    }
+
     const lastResult=raw.lastResult??raw.last_result??null;
     if(lastResult!==null&&!['known','again'].includes(lastResult))throw new Error(`${label}复习结果无效`);
 
     return {
       sourceExam,
-      number:integer(raw.number??raw.question_number,`${label}题号`,1,999),
+      number,
       category,
       subtype:text(raw.subtype,`${label}题型`,{max:LIMITS.subtype}),
       page,
       stem:text(raw.stem,`${label}题目`,{required:true,max:LIMITS.stem}),
       context:text(raw.context,`${label}上下文`,{max:LIMITS.context}),
       options,
-      userAnswer:integer(raw.userAnswer??raw.user_answer,`${label}错误选项`,1,4),
-      correctAnswer:integer(raw.correctAnswer??raw.correct_answer,`${label}正确选项`,1,4),
-      explanation:text(raw.explanation,`${label}正确选项解说`,{required:true,max:LIMITS.explanation}),
-      wrongReason:text(raw.wrongReason??raw.wrong_reason,`${label}错误选项解说`,{required:true,max:LIMITS.wrongReason}),
+      optionExplanations,
+      userAnswer,
+      correctAnswer,
+      explanation,
+      wrongReason,
       keyPoint:text(raw.keyPoint??raw.key_point,`${label}复习重点`,{max:LIMITS.keyPoint}),
       sourceNote:text(raw.sourceNote??raw.source_note,`${label}来源备注`,{max:LIMITS.sourceNote}),
       reviewStep:integer(raw.reviewStep??raw.review_step??0,`${label}复习阶段`,0,5),
