@@ -20,9 +20,9 @@ export async function ensureSeed(userId) {
   return true;
 }
 
-export async function loadQuestions(userId) {
+export async function loadQuestions(userId, { ensureDefault = true } = {}) {
   const sb = requireSupabase();
-  await ensureSeed(userId);
+  if (ensureDefault) await ensureSeed(userId);
 
   const { data, error } = await sb
     .from('wrong_answers')
