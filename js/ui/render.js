@@ -125,8 +125,8 @@ export function renderReview({ state, items, filters, onReviewResult, onEdit }) 
 
   main.querySelectorAll('.option').forEach(button => {
     button.addEventListener('click', () => {
-      main.querySelectorAll('.option').forEach(item => { item.style.outline = ''; });
-      button.style.outline = '2px solid var(--accent)';
+      main.querySelectorAll('.option').forEach(item => item.classList.remove('is-selected'));
+      button.classList.add('is-selected');
     });
   });
 
@@ -152,7 +152,7 @@ export function renderReview({ state, items, filters, onReviewResult, onEdit }) 
   document.getElementById('editThisBtn').addEventListener('click', () => onEdit(question.id));
 
   queueElement.innerHTML = queue.slice(0, 12).map(item => `
-    <button type="button" class="qitem" data-id="${item.id}" style="border:0;width:100%;text-align:left">
+    <button type="button" class="qitem" data-id="${item.id}">
       <span><strong>${esc(item.sourceExam)} · Q${item.number}</strong><br><span class="muted">${esc(item.category)}</span></span>
       <span class="muted">${item.nextReview || '今天'}</span>
     </button>`).join('');
@@ -178,7 +178,7 @@ export function renderList({ items, filters, onReview, onEdit, onDelete }) {
 
   list.innerHTML = scoped.map(question => `<div class="row">
     <div><div class="qid">Q${question.number}</div><div class="mini">${esc(question.sourceExam)}</div><div class="mini">${esc(question.category)}</div></div>
-    <div style="min-width:0">
+    <div class="row-main">
       <div class="stem-mini">${esc(question.stem)}</div>
       <div class="mini"><span class="status-dot ${question.mastered ? 'good' : isDue(question, today) ? 'due' : ''}"></span>${question.mastered ? '已掌握' : isDue(question, today) ? '到期复习' : `下次 ${question.nextReview}`} · 你选 ${optLabel(question.userAnswer)} → 正确 ${optLabel(question.correctAnswer)}</div>
     </div>
