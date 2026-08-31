@@ -15,9 +15,10 @@
   line-height:1.75;
 }
 
-/* Enlarge only the circled option numbers; surrounding text keeps its existing size. */
+/* Enlarge only the circled option numbers; keep them at regular weight. */
 .option .n{
   font-size:1.45em;
+  font-weight:400;
   line-height:1;
 }
 
@@ -25,6 +26,7 @@
 .option-analysis-number{
   display:inline-block;
   font-size:1.45em;
+  font-weight:400;
   line-height:1;
   vertical-align:-0.08em;
 }
@@ -77,6 +79,7 @@
 
 .option-edit-detailed>strong{
   padding-top:9px;
+  font-weight:400;
 }
 
 .option-edit-body{
