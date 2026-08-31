@@ -1,26 +1,12 @@
 import { DEFAULT_SOURCE_EXAM } from './constants.js';
+import { SEED_QUESTIONS } from './data/seed-data.js';
 import { dateOnly, isoToday, normalizeSource } from './utils.js';
 
-function optionExplanationMap(sourceExam, number) {
-  const source = normalizeSource(sourceExam || DEFAULT_SOURCE_EXAM);
-  const mapped = window.OPTION_EXPLANATIONS?.[source]?.[Number(number)];
-  return Array.isArray(mapped) && mapped.length === 4
-    ? mapped.map(value => String(value || '').trim())
-    : ['', '', '', ''];
-}
-
 export function getOptionExplanations(question) {
-  const source = question?.sourceExam ?? question?.source_exam ?? DEFAULT_SOURCE_EXAM;
-  const number = question?.number ?? question?.question_number;
-  const result = optionExplanationMap(source, number);
   const stored = question?.optionExplanations ?? question?.option_explanations;
-
-  if (Array.isArray(stored) && stored.length === 4) {
-    stored.forEach((value, index) => {
-      const text = String(value ?? '').trim();
-      if (text) result[index] = text;
-    });
-  }
+  const result = Array.isArray(stored) && stored.length === 4
+    ? stored.map(value => String(value ?? '').trim())
+    : ['', '', '', ''];
 
   const correct = Number(question?.correctAnswer ?? question?.correct_answer);
   const user = Number(question?.userAnswer ?? question?.user_answer);
@@ -38,11 +24,10 @@ export function getOptionExplanations(question) {
 }
 
 export function seedQuestions() {
-  const seed = Array.isArray(window.SEED) ? window.SEED : [];
-  return seed.map(question => ({
+  return SEED_QUESTIONS.map(question => ({
     ...question,
-    sourceExam: normalizeSource(question.sourceExam || DEFAULT_SOURCE_EXAM),
-    optionExplanations: getOptionExplanations(question),
+    options: [...question.options],
+    optionExplanations: [...question.optionExplanations],
   }));
 }
 
