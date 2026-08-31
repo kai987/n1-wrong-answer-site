@@ -116,6 +116,16 @@
     });
   };
 
+  function setSummaryOptionNumber(heading,prefix,label){
+    if(!heading)return;
+    heading.textContent='';
+    heading.append(document.createTextNode(prefix));
+    const number=document.createElement('span');
+    number.className='answer-option-number';
+    number.textContent=label;
+    heading.append(number);
+  }
+
   const baseRenderReview=renderReview;
   renderReview=function(){
     baseRenderReview();
@@ -123,7 +133,13 @@
     if(!qarr.length)return;
     const q=state.items.find(x=>x.id===state.currentId)||qarr[0];
     const box=document.getElementById('explainBox');
-    if(!box||box.querySelector('.option-analysis-section'))return;
+    if(!box)return;
+
+    const summaryHeadings=box.querySelectorAll('.explain-grid .ex-block h4');
+    setSummaryOptionNumber(summaryHeadings[0],'正确选项 ',optLabel(q.correctAnswer));
+    setSummaryOptionNumber(summaryHeadings[1],'你当时选了 ',optLabel(q.userAnswer));
+
+    if(box.querySelector('.option-analysis-section'))return;
 
     const explanations=window.getOptionExplanations(q);
     const section=document.createElement('section');
@@ -138,7 +154,7 @@
           const classes=['option-analysis-card',isCorrect?'correct':'',isUser&&!isCorrect?'user-wrong':''].filter(Boolean).join(' ');
           const tags=[isCorrect?'<span class="tag good">正确</span>':'',isUser&&!isCorrect?'<span class="tag wrong">你当时选择</span>':''].join(' ');
           return `<div class="${classes}">
-            <div class="option-analysis-head"><strong>${optLabel(n)} ${esc(option)}</strong><span>${tags}</span></div>
+            <div class="option-analysis-head"><strong><span class="option-analysis-number">${optLabel(n)}</span> ${esc(option)}</strong><span>${tags}</span></div>
             <p>${esc(explanations[index]||'暂未补充该选项的解释。')}</p>
           </div>`;
         }).join('')}
