@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="theme-button.css?v=5" />
   <link rel="stylesheet" href="auth.css" />
   <link rel="stylesheet" href="header.css?v=5" />
+  <link rel="stylesheet" href="option-analysis.css?v=1" />
 </head>
 <body>
 <div class="auth-shell" id="authShell">
@@ -106,7 +107,7 @@
           <div class="field"><label>题型</label><input class="control" id="qSubtype" placeholder="例如 文法选择 / 词语用法"></div>
           <div class="field"><label>题目</label><textarea class="control" id="qStem" required></textarea></div>
           <div class="field"><label>阅读上下文 / 补充材料（可选）</label><textarea class="control" id="qContext"></textarea></div>
-          <div class="field"><label>四个选项</label><div id="optionEditor"></div></div>
+          <div class="field"><label>四个选项与逐项解释</label><div id="optionEditor"></div></div>
           <div class="field"><label>你当时选错的选项</label><select class="control" id="qUserAnswer"><option value="1">①</option><option value="2">②</option><option value="3">③</option><option value="4">④</option></select></div>
           <div class="field"><label>正确选项</label><select class="control" id="qCorrectAnswer"><option value="1">①</option><option value="2">②</option><option value="3">③</option><option value="4">④</option></select></div>
           <div class="field"><label>正确选项解说</label><textarea class="control" id="qExplanation" required></textarea></div>
@@ -120,7 +121,7 @@
       </div>
       <div class="card form-card">
         <h3>云端数据</h3>
-        <p class="note">每道题都会保存“试卷来源”，例如 2025-12、2025-07。相同题号可以存在于不同来源中，并可在上方按来源筛选。</p>
+        <p class="note">每道题都会保存“试卷来源”和 ①～④ 四个选项的逐项解释。相同题号可以存在于不同来源中，并可在上方按来源筛选。</p>
         <div class="review-actions">
           <button class="btn" id="resetProgressBtn" type="button">重置复习进度</button>
           <button class="btn danger" id="resetAllBtn" type="button">恢复 2025-12 初始35题</button>
@@ -139,7 +140,9 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.4"></script>
 <script src="config.js"></script>
 <script src="data.js"></script>
+<script src="option-explanations.js?v=1"></script>
 <script src="app.js?v=5"></script>
-<script src="security.js?v=1"></script>
+<script src="option-analysis.js?v=1"></script>
+<script src="security.js?v=2"></script>
 </body>
 </html>
