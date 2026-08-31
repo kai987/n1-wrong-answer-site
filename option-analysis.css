@@ -1,0 +1,81 @@
+.option-analysis-section{
+  margin-top:18px;
+  padding-top:18px;
+  border-top:1px solid var(--border);
+}
+
+.option-analysis-section h3{
+  margin:0 0 12px;
+  font-size:15px;
+}
+
+.option-analysis-grid{
+  display:grid;
+  gap:10px;
+}
+
+.option-analysis-card{
+  border:1px solid var(--border);
+  border-radius:11px;
+  padding:12px 14px;
+  background:var(--surface-2);
+}
+
+.option-analysis-card.correct{
+  border-color:#9ccbb5;
+  background:var(--good-soft);
+}
+
+.option-analysis-card.user-wrong{
+  border-color:#e4aaa4;
+  background:var(--danger-soft);
+}
+
+.option-analysis-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:5px;
+}
+
+.option-analysis-head strong{
+  font-size:13px;
+  line-height:1.55;
+}
+
+.option-analysis-card p{
+  margin:0;
+  font-size:14px;
+  line-height:1.7;
+}
+
+.option-edit-detailed{
+  align-items:start;
+  margin-bottom:12px;
+}
+
+.option-edit-detailed>strong{
+  padding-top:9px;
+}
+
+.option-edit-body{
+  display:grid;
+  gap:7px;
+  min-width:0;
+}
+
+textarea.option-explanation-input{
+  min-height:76px;
+}
+
+@media(max-width:560px){
+  .option-analysis-head{
+    flex-direction:column;
+    gap:6px;
+  }
+
+  .option-edit-detailed{
+    grid-template-columns:34px 1fr;
+  }
+}
