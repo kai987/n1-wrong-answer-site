@@ -93,6 +93,16 @@
     .field label{font-size:13px;font-weight:730;color:#4d535a}
     textarea.control{min-height:92px;resize:vertical;width:100%}
     input.control,select.control{width:100%}
+    select.control{
+      -webkit-appearance:none;
+      -moz-appearance:none;
+      appearance:none;
+      padding-right:48px;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5 7.5 10 12.5 15 7.5' stroke='%236c727a' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat:no-repeat;
+      background-position:right 18px center;
+      background-size:16px 16px;
+    }
     .option-edit{display:grid;grid-template-columns:50px 1fr;gap:8px;margin-bottom:7px;align-items:center}
     .note{font-size:13px;color:var(--muted);margin-top:6px}
     .footer-note{margin:18px 0 0;color:var(--muted);font-size:12px;text-align:center}
@@ -106,6 +116,12 @@
     html[data-theme="dark"] .tab{color:#aeb6bf}
     html[data-theme="dark"] .tab.active{background:#30363e;color:var(--text);box-shadow:0 1px 5px rgba(0,0,0,.32)}
     html[data-theme="dark"] .control{background:#1c2127}
+    html[data-theme="dark"] select.control{
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5 7.5 10 12.5 15 7.5' stroke='%23a3abb5' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat:no-repeat;
+      background-position:right 18px center;
+      background-size:16px 16px;
+    }
     html[data-theme="dark"] .pill{color:#c0c7cf}
     html[data-theme="dark"] .context{background:#20252c;border-left-color:#5d6672;color:#d8dde3}
     html[data-theme="dark"] .option{background:#1c2127}
