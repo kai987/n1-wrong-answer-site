@@ -1,28 +1,23 @@
-import { DEFAULT_SOURCE_EXAM } from './constants.js';
-import { itemToRow, rowToItem, seedQuestions, seedToRow } from './questions.js';
+import { DEFAULT_SOURCE_EXAM, SEED_VERSION } from './constants.js';
+import { itemToRow, rowToItem, seedQuestions } from './questions.js';
 import { requireSupabase } from './supabase.js';
 import { dateOnly, isoToday } from './utils.js';
 
-export async function ensureSeed(userId) {
+export async function ensureSeed() {
   const sb = requireSupabase();
-  const { count, error } = await sb
-    .from('wrong_answers')
-    .select('id', { count: 'exact', head: true })
-    .eq('user_id', userId)
-    .eq('source_exam', DEFAULT_SOURCE_EXAM);
-
+  const rows = seedQuestions().map(itemToRow);
+  const { data, error } = await sb.rpc('initialize_wrong_answers_exam', {
+    p_source_exam: DEFAULT_SOURCE_EXAM,
+    p_seed_version: SEED_VERSION,
+    p_items: rows,
+  });
   if (error) throw error;
-  if ((count || 0) > 0) return false;
-
-  const rows = seedQuestions().map(question => seedToRow(question, userId));
-  const { error: insertError } = await sb.from('wrong_answers').insert(rows);
-  if (insertError) throw insertError;
-  return true;
+  return data === true;
 }
 
 export async function loadQuestions(userId, { ensureDefault = true } = {}) {
   const sb = requireSupabase();
-  if (ensureDefault) await ensureSeed(userId);
+  if (ensureDefault) await ensureSeed();
 
   const { data, error } = await sb
     .from('wrong_answers')
@@ -107,6 +102,7 @@ export async function restoreDefaultExam() {
   const { data, error } = await sb.rpc('replace_wrong_answers_for_exam', {
     p_source_exam: DEFAULT_SOURCE_EXAM,
     p_items: rows,
+    p_seed_version: SEED_VERSION,
   });
   if (error) throw error;
   return Number.isInteger(data) ? data : rows.length;
