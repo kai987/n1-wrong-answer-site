@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; connect-src 'self' https://flpmblfscgcbrprwwckz.supabase.co wss://flpmblfscgcbrprwwckz.supabase.co; img-src 'self' data: blob:; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'; worker-src 'none'; media-src 'none'; manifest-src 'self'; upgrade-insecure-requests" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self'; connect-src 'self' https://flpmblfscgcbrprwwckz.supabase.co wss://flpmblfscgcbrprwwckz.supabase.co; img-src 'self' data: blob:; font-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'; worker-src 'none'; media-src 'none'; manifest-src 'self'; upgrade-insecure-requests" />
   <meta name="referrer" content="strict-origin-when-cross-origin" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>JLPT N1 错题复习</title>
@@ -35,28 +35,20 @@
       <h1>JLPT N1 错题复习</h1>
       <p>多期试卷 · 云端复习、解释、更新与间隔重复</p>
     </div>
-
     <div class="header-side">
-      <div class="header-status" aria-live="polite">
-        <span class="sync-dot" aria-hidden="true"></span>
-        <span class="sync-state" id="syncState">正在连接云端…</span>
-      </div>
-
+      <div class="header-status" aria-live="polite"><span class="sync-dot" aria-hidden="true"></span><span class="sync-state" id="syncState">正在连接云端…</span></div>
       <div class="top-actions">
         <button class="btn" id="exportBtn">导出 JSON</button>
         <label class="btn import-btn" for="importFile">导入 JSON</label>
         <input id="importFile" type="file" accept="application/json" hidden>
         <button class="btn primary" id="addBtn">＋ 添加错题</button>
         <button class="btn" id="signOutBtn">退出登录</button>
-        <button class="theme-toggle btn" id="themeToggle" type="button" aria-label="切换昼夜模式" aria-pressed="false">
-          <span class="theme-toggle-icon" data-theme-icon aria-hidden="true"></span>
-        </button>
+        <button class="theme-toggle btn" id="themeToggle" type="button" aria-label="切换昼夜模式" aria-pressed="false"><span class="theme-toggle-icon" data-theme-icon aria-hidden="true"></span></button>
       </div>
     </div>
   </header>
 
   <div class="stats" id="stats"></div>
-
   <div class="toolbar">
     <div class="tabs" role="tablist" aria-label="页面切换">
       <button class="tab active" id="tab-review" data-tab="review" role="tab" aria-controls="panel-review" aria-selected="true">今日复习</button>
@@ -64,33 +56,14 @@
       <button class="tab" id="tab-edit" data-tab="edit" role="tab" aria-controls="panel-edit" aria-selected="false" tabindex="-1">添加 / 编辑</button>
     </div>
     <div class="filters">
-      <select class="control" id="sourceFilter" aria-label="试卷来源筛选">
-        <option value="all">全部来源</option>
-      </select>
-      <select class="control" id="categoryFilter" aria-label="分类筛选">
-        <option value="all">全部分类</option>
-        <option value="文字・語彙">文字・語彙</option>
-        <option value="文法">文法</option>
-        <option value="読解">読解</option>
-      </select>
+      <select class="control" id="sourceFilter" aria-label="试卷来源筛选"><option value="all">全部来源</option></select>
+      <select class="control" id="categoryFilter" aria-label="分类筛选"><option value="all">全部分类</option><option value="文字・語彙">文字・語彙</option><option value="文法">文法</option><option value="読解">読解</option></select>
       <input class="control search" id="searchInput" type="search" placeholder="搜索来源、题号、单词、语法…">
     </div>
   </div>
 
-  <section class="panel active" id="panel-review" role="tabpanel" aria-labelledby="tab-review">
-    <div class="review-layout">
-      <div id="reviewMain"></div>
-      <aside class="card side">
-        <h3>复习队列</h3>
-        <div id="queue" class="queue"></div>
-      </aside>
-    </div>
-  </section>
-
-  <section class="panel" id="panel-all" role="tabpanel" aria-labelledby="tab-all" hidden>
-    <div id="questionList" class="list"></div>
-  </section>
-
+  <section class="panel active" id="panel-review" role="tabpanel" aria-labelledby="tab-review"><div class="review-layout"><div id="reviewMain"></div><aside class="card side"><h3>复习队列</h3><div id="queue" class="queue"></div></aside></div></section>
+  <section class="panel" id="panel-all" role="tabpanel" aria-labelledby="tab-all" hidden><div id="questionList" class="list"></div></section>
   <section class="panel" id="panel-edit" role="tabpanel" aria-labelledby="tab-edit" hidden>
     <div class="editor">
       <div class="card form-card">
@@ -109,20 +82,14 @@
           <div class="field"><label>正确选项解说</label><textarea class="control" id="qExplanation" required></textarea></div>
           <div class="field"><label>为什么你的错误选项不对</label><textarea class="control" id="qWrongReason" required></textarea></div>
           <div class="field"><label>复习重点</label><input class="control" id="qKeyPoint" placeholder="例如 ～なくしては = 没有…就不能…"></div>
-          <div class="review-actions">
-            <button class="btn primary" type="submit">保存错题</button>
-            <button class="btn" type="button" id="cancelEditBtn">清空表单</button>
-          </div>
+          <div class="review-actions"><button class="btn primary" type="submit">保存错题</button><button class="btn" type="button" id="cancelEditBtn">清空表单</button></div>
         </form>
       </div>
       <div class="card form-card">
         <h3>云端数据</h3>
         <p class="note">每道题都会保存“试卷来源”和 ①～④ 四个选项的逐项解释。相同题号可以存在于不同来源中，并可在上方按来源筛选。</p>
-        <div class="review-actions">
-          <button class="btn" id="resetProgressBtn" type="button">重置复习进度</button>
-          <button class="btn danger" id="resetAllBtn" type="button">恢复 2025-12 初始35题</button>
-        </div>
-        <div style="height:16px"></div>
+        <div class="review-actions"><button class="btn" id="resetProgressBtn" type="button">重置复习进度</button><button class="btn danger" id="resetAllBtn" type="button">恢复 2025-12 初始35题</button></div>
+        <div class="form-section-spacer" aria-hidden="true"></div>
         <h3>复习规则</h3>
         <p class="note">点“已掌握”后，下一次按 1 → 3 → 7 → 14 → 30 天间隔出现；点“还需复习”则次日重新出现。</p>
       </div>
@@ -131,7 +98,6 @@
   <p class="footer-note">初始题库来源：2025-12 · JLPT N1 非听力错题 35 题。問題7（41–43）使用后续核对的还原版选项。</p>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-
 <script src="theme.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.4"></script>
 <script src="config.js"></script>
