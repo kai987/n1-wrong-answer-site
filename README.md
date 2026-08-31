@@ -13,7 +13,7 @@
 
 ## Vanilla JS 架构
 
-应用逻辑不再集中在单个 `app.js`，也不再通过运行时覆盖函数或 clone DOM 来替换事件监听器。当前职责划分：
+应用逻辑不集中在单个脚本，也不通过运行时覆盖函数、全局变量桥接或 clone DOM 替换事件监听器。当前职责划分：
 
 ```text
 js/
@@ -21,15 +21,21 @@ js/
 ├── constants.js      # 复习间隔、分类、导入限制等常量
 ├── utils.js          # 日期、转义、提示、debounce 等通用工具
 ├── review.js         # 间隔复习与筛选的纯逻辑
-├── questions.js      # 题目模型、Supabase row/item 映射、逐项解析合并
+├── questions.js      # 题目模型、Supabase row/item 映射
 ├── validator.js      # JSON 导入规范化与校验
 ├── supabase.js       # Supabase client 创建
 ├── repository.js     # Supabase 数据读写层
 ├── auth.js           # 登录、注册、退出和 session 初始化
+├── data/
+│   ├── base-questions.js       # 初始题目与标准解析
+│   ├── option-explanations.js  # ①～④ 逐项解释源数据
+│   └── seed-data.js            # 唯一题库入口；合并为完整题目对象
 └── ui/
     ├── editor.js     # 添加/编辑表单
     └── render.js     # 统计、复习区、错题列表和 tab 渲染
 ```
+
+业务代码只通过 `js/data/seed-data.js` 消费初始题库。根目录不再存在 `data.js`、`option-explanations.js` 或 `seed-bridge.js` 这类全局脚本。
 
 大体数据流为：
 
@@ -49,7 +55,28 @@ state
 ui/render.js
 ```
 
-`data.js` 目前仍作为较大的静态初始题库文件存在，通过 `seed-bridge.js` 暴露给模块入口；这是刻意保留的过渡层，后续可以在需要时再把静态题库转为独立模块或 JSON，而不影响业务模块。
+## CSS 结构
+
+页面最终样式已经收敛到单一 `styles.css`。原来的 `header.css`、`theme-button.css`、`option-analysis.css`、`auth.css` 已合并并删除，不再依赖“后加载 CSS 覆盖旧规则”维持界面。
+
+`styles.css` 内按职责分段维护：
+
+```text
+Design tokens / base
+Authentication
+Header
+Buttons and controls
+Theme button
+Dashboard
+Review
+Per-option analysis
+List
+Editor
+Dark theme
+Responsive rules
+```
+
+这样修改顶部、主题按钮、解析字号或圈号样式时，只存在一个最终规则来源。
 
 ## Supabase 项目
 项目 ref：`flpmblfscgcbrprwwckz`
@@ -97,13 +124,19 @@ npm run check
 npm test
 ```
 
-当前单元测试覆盖：
+当前测试覆盖：
 - 试卷来源规范化
 - 1 → 3 → 7 → 14 → 30 天复习间隔
 - “还需复习”重置逻辑
 - 到期判断
 - 逐项解析搜索
 - 今日队列与无到期题时的 fallback 顺序
+- 初始题库固定为 35 题
+- 每道初始题固定包含 4 个选项 + 4 条逐项解释
+- `2025-12` 来源与题号唯一性
+- 問題7 Q41–43 正确答案保护
+- `index.html` 只加载一个应用样式表和一个模块入口
+- 已删除的全局题库/桥接/覆盖 CSS 文件不会重新出现
 
 GitHub Pages 工作流会先执行以上检查，只有通过后才继续部署。
 
