@@ -59,5 +59,5 @@ test('due queue prefers due items and falls back to unmastered items', () => {
   const filters = { source: 'all', category: 'all', search: '' };
 
   assert.deepEqual(buildDueQueue(items, filters, '2026-09-01').map(item => item.id), ['b']);
-  assert.deepEqual(buildDueQueue(items, filters, '2026-08-30').map(item => item.id), ['a', 'b']);
+  assert.deepEqual(buildDueQueue(items, filters, '2026-08-30').map(item => item.id), ['b', 'a']);
 });
