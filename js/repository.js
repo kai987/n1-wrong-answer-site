@@ -101,15 +101,15 @@ export async function resetProgress(userId) {
   if (error) throw error;
 }
 
-export async function restoreDefaultExam(userId) {
+export async function restoreDefaultExam() {
   const sb = requireSupabase();
-  const { error } = await sb
-    .from('wrong_answers')
-    .delete()
-    .eq('user_id', userId)
-    .eq('source_exam', DEFAULT_SOURCE_EXAM);
+  const rows = seedQuestions().map(itemToRow);
+  const { data, error } = await sb.rpc('replace_wrong_answers_for_exam', {
+    p_source_exam: DEFAULT_SOURCE_EXAM,
+    p_items: rows,
+  });
   if (error) throw error;
-  await ensureSeed(userId);
+  return Number.isInteger(data) ? data : rows.length;
 }
 
 export async function replaceAllQuestions(items) {
