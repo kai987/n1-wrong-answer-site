@@ -1,4 +1,3 @@
-import { DEFAULT_SOURCE_EXAM } from './constants.js';
 import { SEED_QUESTIONS } from './data/seed-data.js';
 import { dateOnly, isoToday, normalizeSource } from './utils.js';
 
@@ -29,32 +28,6 @@ export function seedQuestions() {
     options: [...question.options],
     optionExplanations: [...question.optionExplanations],
   }));
-}
-
-export function seedToRow(question, userId) {
-  return {
-    user_id: userId,
-    source_exam: normalizeSource(question.sourceExam || DEFAULT_SOURCE_EXAM),
-    question_number: question.number,
-    category: question.category,
-    subtype: question.subtype || null,
-    page: String(question.page || ''),
-    stem: question.stem,
-    context: question.context || null,
-    options: question.options,
-    option_explanations: getOptionExplanations(question),
-    user_answer: question.userAnswer,
-    correct_answer: question.correctAnswer,
-    explanation: question.explanation,
-    wrong_reason: question.wrongReason,
-    key_point: question.keyPoint || null,
-    source_note: question.sourceNote || null,
-    review_step: 0,
-    review_count: 0,
-    last_result: null,
-    mastered: false,
-    next_review_at: dateOnly(isoToday()),
-  };
 }
 
 export function rowToItem(row) {
