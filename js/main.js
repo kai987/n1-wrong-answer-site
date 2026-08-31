@@ -1,5 +1,6 @@
-import { DEFAULT_SOURCE_EXAM, IMPORT_LIMITS } from './constants.js';
+import { DEFAULT_SOURCE_EXAM } from './constants.js';
 import { initializeAuth, signIn, signOut, signUp } from './auth.js';
+import { downloadQuestions, readImportFile } from './io.js';
 import {
   deleteQuestion,
   loadQuestions,
@@ -11,18 +12,15 @@ import {
 } from './repository.js';
 import { applyReviewResult } from './review.js';
 import { supabase } from './supabase.js';
-import { normalizeImportItems } from './validator.js';
 import {
   authMessage,
-  dateOnly,
-  debounce,
   isDuplicateError,
-  isoToday,
   setAppVisible,
   setSync,
   toast,
 } from './utils.js';
 import { clearEditor, fillEditor, readEditor, setupOptionEditor } from './ui/editor.js';
+import { bindStaticEvents } from './ui/events.js';
 import {
   readFilters,
   refreshSourceFilter,
@@ -40,9 +38,7 @@ const state = {
   loading: false,
 };
 
-function filters() {
-  return readFilters();
-}
+const filters = () => readFilters();
 
 function renderActivePanel() {
   const currentFilters = filters();
@@ -54,7 +50,10 @@ function renderActivePanel() {
       onReviewResult: handleReviewResult,
       onEdit: openEditor,
     });
-  } else if (state.activeTab === 'all') {
+    return;
+  }
+
+  if (state.activeTab === 'all') {
     renderList({
       items: state.items,
       filters: currentFilters,
@@ -86,8 +85,7 @@ function openEditor(id = null) {
   state.activeTab = 'edit';
   switchTab('edit');
   const question = id ? state.items.find(item => item.id === id) : null;
-  if (question) fillEditor(question);
-  else clearEditor();
+  question ? fillEditor(question) : clearEditor();
 }
 
 async function loadCloud({ ensureDefault = true } = {}) {
@@ -111,11 +109,10 @@ async function loadCloud({ ensureDefault = true } = {}) {
 
 async function handleReviewResult(question, known) {
   if (!state.user) return;
-  const next = applyReviewResult(question, known);
   setSync('正在保存复习结果…');
 
   try {
-    const saved = await saveReview(next, state.user.id);
+    const saved = await saveReview(applyReviewResult(question, known), state.user.id);
     state.items = state.items.map(item => item.id === saved.id ? saved : item);
     state.currentId = null;
     renderDashboard();
@@ -151,11 +148,10 @@ async function handleEditorSubmit(event) {
 
   const id = document.getElementById('editId').value;
   const existing = state.items.find(question => question.id === id) || null;
-  const question = readEditor(existing);
   setSync('正在保存…');
 
   try {
-    const saved = await saveQuestion(question, state.user.id);
+    const saved = await saveQuestion(readEditor(existing), state.user.id);
     if (existing) {
       state.items = state.items.map(item => item.id === saved.id ? saved : item);
       toast('已更新错题');
@@ -176,38 +172,20 @@ async function handleEditorSubmit(event) {
   }
 }
 
-function exportData() {
-  const blob = new Blob([
-    JSON.stringify({
-      version: 4,
-      storage: 'supabase',
-      exportedAt: new Date().toISOString(),
-      items: state.items,
-    }, null, 2),
-  ], { type: 'application/json' });
+async function handleImport(file) {
+  try {
+    const normalized = await readImportFile(file);
+    if (!window.confirm(`导入将用 ${normalized.length} 道题替换当前账号的全部云端错题。导入为事务操作，失败时原数据不会变化。继续吗？`)) return;
 
-  const anchor = document.createElement('a');
-  anchor.href = URL.createObjectURL(blob);
-  anchor.download = `jlpt-n1-wrong-questions-${dateOnly(isoToday())}.json`;
-  anchor.click();
-  window.setTimeout(() => URL.revokeObjectURL(anchor.href), 1000);
-}
-
-async function importData(file) {
-  if (!(file instanceof File)) return;
-  if (file.size > IMPORT_LIMITS.fileBytes) throw new Error('JSON 文件不能超过 2 MB');
-
-  const parsed = JSON.parse(await file.text());
-  const items = Array.isArray(parsed) ? parsed : parsed?.items;
-  const normalized = normalizeImportItems(items);
-  if (!window.confirm(`导入将用 ${normalized.length} 道题替换当前账号的全部云端错题。导入为事务操作，失败时原数据不会变化。继续吗？`)) {
-    return;
+    setSync('正在安全导入云端…');
+    const count = await replaceAllQuestions(normalized);
+    await loadCloud({ ensureDefault: false });
+    toast(`已安全导入 ${count} 道错题`);
+  } catch (error) {
+    console.error(error);
+    setSync('导入失败，原数据未更改', 'error');
+    window.alert(`导入失败：${error?.message || '无法识别该 JSON 文件'}`);
   }
-
-  setSync('正在安全导入云端…');
-  const count = await replaceAllQuestions(normalized);
-  await loadCloud({ ensureDefault: false });
-  toast(`已安全导入 ${count} 道错题`);
 }
 
 async function handleResetProgress() {
@@ -227,13 +205,13 @@ async function handleRestoreDefault() {
   if (!state.user || !window.confirm(`只恢复 ${DEFAULT_SOURCE_EXAM} 的初始35道错题。其他来源的错题不会删除。继续吗？`)) return;
 
   try {
-    await restoreDefaultExam(state.user.id);
-    await loadCloud();
+    const count = await restoreDefaultExam();
+    await loadCloud({ ensureDefault: false });
     clearEditor();
-    toast(`已恢复 ${DEFAULT_SOURCE_EXAM} 初始35题`);
+    toast(`已事务恢复 ${DEFAULT_SOURCE_EXAM} 初始 ${count} 题`);
   } catch (error) {
     console.error(error);
-    toast('恢复失败');
+    toast('恢复失败，原题库未更改');
   }
 }
 
@@ -252,62 +230,33 @@ async function handleSession(session) {
   authMessage('首次使用请注册；已有账号可直接登录。');
 }
 
-function bindStaticEvents() {
-  document.getElementById('authForm').addEventListener('submit', event => {
-    event.preventDefault();
-    void signIn(
-      document.getElementById('authEmail').value.trim(),
-      document.getElementById('authPassword').value,
-    );
+function bindEvents() {
+  bindStaticEvents({
+    onSignIn: ({ email, password }) => void signIn(email, password),
+    onSignUp: ({ email, password }) => void signUp(email, password),
+    onSignOut: () => void signOut(),
+    onTab: activateTab,
+    onSourceFilter: () => {
+      renderStats(state.items, filters());
+      renderActivePanel();
+    },
+    onCategoryFilter: renderActivePanel,
+    onSearch: renderActivePanel,
+    onAdd: () => openEditor(),
+    onCancelEdit: clearEditor,
+    onEditorSubmit: handleEditorSubmit,
+    onExport: () => downloadQuestions(state.items),
+    onImport: handleImport,
+    onResetProgress: () => void handleResetProgress(),
+    onRestoreDefault: () => void handleRestoreDefault(),
   });
-
-  document.getElementById('signUpBtn').addEventListener('click', () => {
-    void signUp(
-      document.getElementById('authEmail').value.trim(),
-      document.getElementById('authPassword').value,
-    );
-  });
-
-  document.getElementById('signOutBtn').addEventListener('click', () => void signOut());
-
-  document.querySelectorAll('.tab').forEach(button => {
-    button.addEventListener('click', () => activateTab(button.dataset.tab));
-  });
-
-  document.getElementById('sourceFilter').addEventListener('change', () => {
-    renderStats(state.items, filters());
-    renderActivePanel();
-  });
-  document.getElementById('categoryFilter').addEventListener('change', renderActivePanel);
-  document.getElementById('searchInput').addEventListener('input', debounce(renderActivePanel, 120));
-
-  document.getElementById('addBtn').addEventListener('click', () => openEditor());
-  document.getElementById('cancelEditBtn').addEventListener('click', clearEditor);
-  document.getElementById('editorForm').addEventListener('submit', handleEditorSubmit);
-  document.getElementById('exportBtn').addEventListener('click', exportData);
-
-  document.getElementById('importFile').addEventListener('change', async event => {
-    const file = event.target.files?.[0];
-    try {
-      if (file) await importData(file);
-    } catch (error) {
-      console.error(error);
-      setSync('导入失败，原数据未更改', 'error');
-      window.alert(`导入失败：${error?.message || '无法识别该 JSON 文件'}`);
-    } finally {
-      event.target.value = '';
-    }
-  });
-
-  document.getElementById('resetProgressBtn').addEventListener('click', () => void handleResetProgress());
-  document.getElementById('resetAllBtn').addEventListener('click', () => void handleRestoreDefault());
 }
 
 async function bootstrap() {
   setupOptionEditor();
   clearEditor();
   switchTab('review');
-  bindStaticEvents();
+  bindEvents();
 
   if (!supabase) {
     authMessage('Supabase 客户端未加载，请检查网络或 config.js。', true);
