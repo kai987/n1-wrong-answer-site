@@ -4,6 +4,6 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "check": "node --check js/*.js && node --check js/ui/*.js && node --check seed-bridge.js && node --check theme.js && node --check theme-init.js"
+    "check": "node --check js/*.js && node --check js/ui/*.js && node --check js/data/*.js && node --check theme.js && node --check theme-init.js"
   }
 }
