@@ -1,6 +1,8 @@
 (function(){
   'use strict';
 
+  let editorSaveActive=false;
+
   function optionExplanationMap(sourceExam,number){
     const source=normalizeSource(sourceExam||DEFAULT_SOURCE_EXAM);
     const mapped=window.OPTION_EXPLANATIONS?.[source]?.[Number(number)];
@@ -51,11 +53,15 @@
   itemToRow=function(q){
     const row=baseItemToRow(q);
     let explanations=window.getOptionExplanations(q);
+    const editorValues=readEditorExplanations();
     const hasStored=Array.isArray(q?.optionExplanations)&&q.optionExplanations.some(v=>String(v||'').trim());
-    if(!hasStored){
-      const editorValues=readEditorExplanations();
-      if(editorValues.some(Boolean))explanations=editorValues;
+
+    if(editorSaveActive&&editorValues.every(Boolean)){
+      explanations=editorValues;
+    }else if(!hasStored&&editorValues.some(Boolean)){
+      explanations=editorValues;
     }
+
     row.option_explanations=explanations;
     return row;
   };
@@ -84,6 +90,11 @@
   }
 
   enhanceOptionEditor();
+
+  document.getElementById('editorForm')?.addEventListener('submit',()=>{
+    editorSaveActive=true;
+    queueMicrotask(()=>{editorSaveActive=false;});
+  },true);
 
   const baseOpenEditor=openEditor;
   openEditor=function(id){
@@ -136,4 +147,6 @@
     const actions=box.querySelector('.review-actions');
     if(actions)box.insertBefore(section,actions);else box.appendChild(section);
   };
+
+  if(state.user)loadCloud();
 })();
