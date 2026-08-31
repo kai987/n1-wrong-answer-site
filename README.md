@@ -17,12 +17,13 @@
 
 ```text
 js/
-├── main.js           # 应用入口，只负责流程协调与事件绑定
+├── main.js           # 应用入口，只负责状态与流程协调
 ├── constants.js      # 复习间隔、分类、导入限制等常量
 ├── utils.js          # 日期、转义、提示、debounce 等通用工具
 ├── review.js         # 间隔复习与筛选的纯逻辑
 ├── questions.js      # 题目模型、Supabase row/item 映射
 ├── validator.js      # JSON 导入规范化与校验
+├── io.js             # JSON 导入读取与导出下载
 ├── supabase.js       # Supabase client 创建
 ├── repository.js     # Supabase 数据读写层
 ├── auth.js           # 登录、注册、退出和 session 初始化
@@ -32,6 +33,7 @@ js/
 │   └── seed-data.js            # 唯一题库入口；合并为完整题目对象
 └── ui/
     ├── editor.js     # 添加/编辑表单
+    ├── events.js     # 静态 DOM 事件绑定
     └── render.js     # 统计、复习区、错题列表和 tab 渲染
 ```
 
@@ -42,9 +44,11 @@ js/
 ```text
 用户操作
   ↓
+ui/events.js
+  ↓
 main.js
   ↓
-review / validator / editor
+review / validator / io / editor
   ↓
 repository.js
   ↓
@@ -76,7 +80,20 @@ Dark theme
 Responsive rules
 ```
 
-这样修改顶部、主题按钮、解析字号或圈号样式时，只存在一个最终规则来源。
+下拉框箭头使用单个 SVG background，并在明暗主题中显式保持 `background-repeat:no-repeat`。夜间控件只修改 `background-color`，避免 `background` shorthand 把箭头重复方式重置为 `repeat`。
+
+## 静态资源加载
+
+`index.html` 不再手工维护 `?v=1`、`?v=2`、`?v=3` 这类缓存版本号。应用资源使用稳定路径：
+
+```text
+styles.css
+theme-init.js
+theme.js
+js/main.js
+```
+
+GitHub Pages / 浏览器依靠正常的 HTTP 缓存再验证机制处理更新；结构测试会阻止重新引入手工 `?v=` 参数。
 
 ## Supabase 项目
 项目 ref：`flpmblfscgcbrprwwckz`
@@ -100,11 +117,13 @@ Responsive rules
 5. 所有数据写入 Supabase，可跨设备同步。
 6. 仍可通过“导出 JSON / 导入 JSON”做离线备份。
 
-## 安全设计
+## 安全与事务设计
 - `anon` 对 `wrong_answers` 没有表权限；`authenticated` 只有 SELECT / INSERT / UPDATE / DELETE。
 - 所有 CRUD RLS policy 都限定为 `authenticated`，并要求 `auth.uid() = user_id`。
 - JSON 导入先在浏览器校验文件大小、题数、来源、分类、字段长度、选项数量与日期格式。
-- 云端导入通过 `replace_wrong_answers(jsonb)` RPC 在一个 Postgres transaction 中完成；任何错误都会回滚。
+- 云端全量导入通过 `replace_wrong_answers(jsonb)` RPC 在一个 Postgres transaction 中完成；任何错误都会回滚。
+- “恢复 2025-12 初始35题”通过 `replace_wrong_answers_for_exam(text,jsonb)` RPC 只事务替换当前用户指定来源，不会先删题再由前端补种。
+- 恢复 RPC 只允许 `authenticated` 执行，`anon` 无执行权限。
 - 数据库本身还有 CHECK constraints，防止绕过前端直接提交非法记录。
 - 页面启用了 Content Security Policy；Supabase SDK 使用固定版本。
 - CSP 不允许内联脚本、object/frame/worker/media，减少 XSS 成功后的可利用面。
@@ -136,6 +155,10 @@ npm test
 - `2025-12` 来源与题号唯一性
 - 問題7 Q41–43 正确答案保护
 - `index.html` 只加载一个应用样式表和一个模块入口
+- 资源 URL 不使用手工 `?v=` 版本参数
+- 夜间模式 select 不会重复铺设箭头 background
+- 恢复初始题库必须通过事务 RPC，而不能回退到 delete → seed
+- `main.js` 保持为协调层，I/O 和静态事件绑定位于独立模块
 - 已删除的全局题库/桥接/覆盖 CSS 文件不会重新出现
 
 GitHub Pages 工作流会先执行以上检查，只有通过后才继续部署。
