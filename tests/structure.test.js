@@ -1,9 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 
 const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const css = readFileSync(new URL('../styles.css', import.meta.url), 'utf8');
+const repository = readFileSync(new URL('../js/repository.js', import.meta.url), 'utf8');
+const schema = readFileSync(new URL('../supabase/schema.sql', import.meta.url), 'utf8');
 
 test('page loads one consolidated application stylesheet without manual version query strings', () => {
   const stylesheets = [...html.matchAll(/<link\s+rel="stylesheet"\s+href="([^"]+)"/g)].map(match => match[1]);
@@ -23,6 +25,19 @@ test('select arrow stays single in light and dark themes', () => {
   assert.match(css, /html\[data-theme="dark"\] \.control\s*\{background-color:#1c2127\}/);
   assert.match(css, /html\[data-theme="dark"\] select\.control\s*\{[\s\S]*?background-repeat:no-repeat;/);
   assert.equal(/html\[data-theme="dark"\] \.control\s*\{background:#1c2127\}/.test(css), false);
+});
+
+test('default exam restore uses a transactional RPC instead of delete then seed', () => {
+  assert.match(repository, /rpc\('replace_wrong_answers_for_exam'/);
+  assert.match(schema, /create or replace function public\.replace_wrong_answers_for_exam\(p_source_exam text, p_items jsonb\)/);
+  const restoreBody = repository.match(/export async function restoreDefaultExam\(\)[\s\S]*?\n\}/)?.[0] || '';
+  assert.equal(restoreBody.includes('.delete()'), false);
+});
+
+test('main entry stays orchestration-focused after extracting IO and DOM bindings', () => {
+  assert.equal(existsSync(new URL('../js/io.js', import.meta.url)), true);
+  assert.equal(existsSync(new URL('../js/ui/events.js', import.meta.url)), true);
+  assert.ok(statSync(new URL('../js/main.js', import.meta.url)).size < 8500, 'main.js should remain below 8.5 KB');
 });
 
 test('legacy override and bridge files are removed from the repository', () => {
