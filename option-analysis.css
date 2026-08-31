@@ -9,6 +9,12 @@
   font-size:15px;
 }
 
+/* Answer explanation body text is intentionally one step larger for easier reading. */
+.explain .ex-block p{
+  font-size:16px;
+  line-height:1.75;
+}
+
 .option-analysis-grid{
   display:grid;
   gap:10px;
@@ -46,8 +52,8 @@
 
 .option-analysis-card p{
   margin:0;
-  font-size:14px;
-  line-height:1.7;
+  font-size:16px;
+  line-height:1.75;
 }
 
 .option-edit-detailed{
