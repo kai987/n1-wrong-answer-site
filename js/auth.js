@@ -110,6 +110,14 @@ export async function initializeAuth({ onSession, onPasswordRecovery }) {
       void notifyRecovery(session);
       return;
     }
+
+    if (recoveryMode && event === 'SIGNED_OUT') {
+      recoveryMode = false;
+      recoveryNotified = false;
+      void onSession(session);
+      return;
+    }
+
     if (event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') return;
     if (!recoveryMode) void onSession(session);
   });
