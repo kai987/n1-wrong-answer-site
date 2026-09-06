@@ -7,6 +7,7 @@ const css = readFileSync(new URL('../styles.css', import.meta.url), 'utf8');
 const repository = readFileSync(new URL('../js/repository.js', import.meta.url), 'utf8');
 const render = readFileSync(new URL('../js/ui/render.js', import.meta.url), 'utf8');
 const auth = readFileSync(new URL('../js/auth.js', import.meta.url), 'utf8');
+const authErrors = readFileSync(new URL('../js/auth-errors.js', import.meta.url), 'utf8');
 const constants = readFileSync(new URL('../js/constants.js', import.meta.url), 'utf8');
 const schema = readFileSync(new URL('../supabase/schema.sql', import.meta.url), 'utf8');
 
@@ -38,6 +39,24 @@ test('select arrow stays single in light and dark themes', () => {
   assert.match(css, /html\[data-theme="dark"\] \.control\s*\{background-color:#1c2127\}/);
   assert.match(css, /html\[data-theme="dark"\] select\.control\s*\{[\s\S]*?background-repeat:no-repeat;/);
   assert.equal(/html\[data-theme="dark"\] \.control\s*\{background:#1c2127\}/.test(css), false);
+});
+
+test('password recovery UI and Supabase recovery flow are wired end to end', () => {
+  for (const id of ['forgotPasswordBtn', 'recoveryForm', 'recoveryPassword', 'recoveryPasswordConfirm', 'cancelRecoveryBtn']) {
+    assert.match(html, new RegExp(`id="${id}"`));
+  }
+  assert.match(auth, /resetPasswordForEmail\(/);
+  assert.match(auth, /updateUser\(\{ password \}\)/);
+  assert.match(auth, /event === 'PASSWORD_RECOVERY'/);
+  assert.equal(existsSync(new URL('../js/password-recovery.js', import.meta.url)), true);
+  assert.equal(existsSync(new URL('../js/ui/auth-view.js', import.meta.url)), true);
+});
+
+test('authentication errors are localized instead of exposing raw provider messages', () => {
+  assert.match(auth, /friendlyAuthError\(error, '登录失败，请稍后重试。'\)/);
+  assert.equal(auth.includes('authMessage(error.message'), false);
+  assert.match(authErrors, /Invalid login credentials/i);
+  assert.match(authErrors, /邮箱或密码错误，请重新输入/);
 });
 
 test('default exam initialization is one-time and transaction-backed', () => {
