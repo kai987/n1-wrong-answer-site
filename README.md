@@ -5,7 +5,7 @@
 ## 技术栈
 - GitHub Pages：静态前端托管
 - HTML / CSS / Vanilla JavaScript ES Modules
-- Supabase Auth：邮箱 + 密码登录
+- Supabase Auth：邮箱 + 密码登录、邮件找回密码
 - Supabase Postgres：错题与复习进度云端保存
 - Supabase RLS：每个用户只能访问自己的数据
 - Node 内置测试：零第三方测试依赖
@@ -17,24 +17,27 @@
 
 ```text
 js/
-├── main.js           # 应用入口，只负责状态与流程协调
-├── constants.js      # 复习间隔、seed版本、Auth UI策略、导入限制等常量
-├── utils.js          # 日期、转义、提示、debounce 等通用工具
-├── review.js         # 间隔复习与筛选的纯逻辑
-├── questions.js      # 题目模型、Supabase row/item 映射
-├── validator.js      # JSON 导入规范化与校验
-├── io.js             # JSON 导入读取与导出下载
-├── supabase.js       # Supabase client 创建
-├── repository.js     # Supabase 数据读写与事务 RPC 调用
-├── auth.js           # 登录、注册、退出和 session 初始化
+├── main.js                # 应用入口，只负责状态与流程协调
+├── constants.js           # 复习间隔、seed版本、Auth UI策略、导入限制等常量
+├── utils.js               # 日期、转义、提示、debounce 等通用工具
+├── review.js              # 间隔复习与筛选的纯逻辑
+├── questions.js           # 题目模型、Supabase row/item 映射
+├── validator.js           # JSON 导入规范化与校验
+├── io.js                  # JSON 导入读取与导出下载
+├── supabase.js            # Supabase client 创建
+├── repository.js          # Supabase 数据读写与事务 RPC 调用
+├── auth.js                # 登录、注册、退出、找回密码和 session 初始化
+├── auth-errors.js         # Supabase Auth 错误 → 中文友好提示
+├── password-recovery.js   # 新密码设置流程控制
 ├── data/
-│   ├── base-questions.js       # 初始题目与标准解析
-│   ├── option-explanations.js  # ①～④ 逐项解释源数据
-│   └── seed-data.js            # 唯一题库入口；合并为完整题目对象
+│   ├── base-questions.js
+│   ├── option-explanations.js
+│   └── seed-data.js
 └── ui/
-    ├── editor.js     # 添加/编辑表单
-    ├── events.js     # 静态 DOM 事件绑定
-    └── render.js     # 统计、复习区、错题列表和 tab 渲染
+    ├── auth-view.js       # 登录 / 设置新密码视图切换
+    ├── editor.js          # 添加/编辑表单
+    ├── events.js          # 静态 DOM 事件绑定
+    └── render.js          # 统计、复习区、错题列表和 tab 渲染
 ```
 
 业务代码只通过 `js/data/seed-data.js` 消费初始题库。根目录不再存在旧式全局题库、桥接或运行时覆盖脚本。
@@ -48,9 +51,9 @@ ui/events.js
   ↓
 main.js
   ↓
-review / validator / io / editor
+review / validator / io / editor / password-recovery
   ↓
-repository.js
+repository.js / Supabase Auth
   ↓
 Supabase + RLS + transaction RPC
   ↓
@@ -138,7 +141,7 @@ initialize_wrong_answers_exam(source, seed_version, questions)
 
 数据库表创建成功后，新用户第一次登录会自动初始化初始 35 道错题一次。
 
-## Auth 策略
+## Auth 与找回密码
 
 前端的注册策略集中在 `AUTH_POLICY`：
 
@@ -147,7 +150,39 @@ registrationEnabled: true
 registrationMinPasswordLength: 12
 ```
 
-这是 **前端 UX / 防误操作策略，不是服务端安全边界**。直接调用 Supabase Auth API 的客户端不能依赖这段前端代码来限制密码或注册。
+登录失败不再直接显示 Supabase 原始英文错误。例如：
+
+```text
+Invalid login credentials
+↓
+邮箱或密码错误，请重新输入。
+```
+
+其他常见错误（邮箱未验证、发送频率过高、账号已注册等）也通过 `auth-errors.js` 转换为中文提示。
+
+“忘记密码”流程：
+
+```text
+输入邮箱
+↓
+点击「忘记密码？」
+↓
+Supabase resetPasswordForEmail
+↓
+邮件中的重置链接回到本站
+↓
+PASSWORD_RECOVERY session
+↓
+输入两次新密码
+↓
+updateUser({ password })
+↓
+退出恢复 session，并使用新密码重新登录
+```
+
+发送重置邮件后的提示使用“如果该邮箱已注册……”的通用措辞，不通过 UI 暴露某个邮箱是否真实存在于账号系统中。
+
+`AUTH_POLICY` 是 **前端 UX / 防误操作策略，不是服务端安全边界**。直接调用 Supabase Auth API 的客户端不能依赖这段前端代码来限制密码或注册。
 
 生产环境应在 Supabase Dashboard 中同步配置：
 - 服务端最小密码长度（建议至少 12 位）。
@@ -158,7 +193,7 @@ registrationMinPasswordLength: 12
 
 ## 使用
 
-1. 注册 / 登录。
+1. 注册 / 登录；忘记密码时可从登录页发送重置邮件。
 2. “今日复习”重新作答并查看：正确选项、原来的错误选项、正确解说、错误原因、四个选项逐项解析和复习重点。
 3. “全部错题”搜索、筛选、编辑和删除。
 4. “添加 / 编辑”持续加入未来的新错题。
@@ -213,7 +248,10 @@ npm test
 - 首次 seed 必须通过一次性事务 RPC，不得恢复为“count=0 就插入”
 - 恢复初始题库必须通过版本化事务 RPC
 - Auth UI 策略必须集中维护
-- `main.js` 保持为协调层，I/O 和静态事件绑定位于独立模块
+- 登录错误必须经过中文友好映射，不直接展示 `Invalid login credentials`
+- 登录页必须包含忘记密码入口和设置新密码表单
+- Supabase recovery 流程必须包含 `resetPasswordForEmail`、`PASSWORD_RECOVERY` 和 `updateUser({ password })`
+- `main.js` 保持为协调层，I/O、密码恢复和静态事件绑定位于独立模块
 - 已删除的全局题库/桥接/覆盖 CSS 文件不会重新出现
 
 GitHub Pages 工作流会先执行检查，只有通过后才部署。
