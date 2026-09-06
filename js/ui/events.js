@@ -3,6 +3,9 @@ import { debounce } from '../utils.js';
 export function bindStaticEvents({
   onSignIn,
   onSignUp,
+  onForgotPassword,
+  onRecoverySubmit,
+  onCancelRecovery,
   onSignOut,
   onTab,
   onSourceFilter,
@@ -31,6 +34,21 @@ export function bindStaticEvents({
     });
   });
 
+  document.getElementById('forgotPasswordBtn').addEventListener('click', () => {
+    onForgotPassword({
+      email: document.getElementById('authEmail').value.trim(),
+    });
+  });
+
+  document.getElementById('recoveryForm').addEventListener('submit', event => {
+    event.preventDefault();
+    onRecoverySubmit({
+      password: document.getElementById('recoveryPassword').value,
+      confirmPassword: document.getElementById('recoveryPasswordConfirm').value,
+    });
+  });
+
+  document.getElementById('cancelRecoveryBtn').addEventListener('click', onCancelRecovery);
   document.getElementById('signOutBtn').addEventListener('click', onSignOut);
 
   document.querySelectorAll('.tab').forEach(button => {
