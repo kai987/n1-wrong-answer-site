@@ -97,11 +97,13 @@ export async function signOut() {
 export async function initializeAuth({ onSession, onPasswordRecovery }) {
   let recoveryMode = isRecoveryRedirect();
   let recoveryNotified = false;
+  let recoveryHasSession = false;
 
   const notifyRecovery = async session => {
-    if (recoveryNotified) return;
+    if (recoveryNotified && (!session || recoveryHasSession)) return;
     recoveryMode = true;
     recoveryNotified = true;
+    recoveryHasSession = Boolean(session);
     await onPasswordRecovery(session);
   };
 
@@ -114,6 +116,7 @@ export async function initializeAuth({ onSession, onPasswordRecovery }) {
     if (recoveryMode && event === 'SIGNED_OUT') {
       recoveryMode = false;
       recoveryNotified = false;
+      recoveryHasSession = false;
       void onSession(session);
       return;
     }
