@@ -5,9 +5,9 @@ import {
   signIn,
   signOut,
   signUp,
-  updateRecoveredPassword,
 } from './auth.js';
 import { downloadQuestions, readImportFile } from './io.js';
+import { createPasswordRecoveryHandlers } from './password-recovery.js';
 import {
   deleteQuestion,
   loadQuestions,
@@ -26,13 +26,7 @@ import {
   setSync,
   toast,
 } from './utils.js';
-import {
-  clearRecoveryForm,
-  clearRecoveryLocation,
-  recoveryMessage,
-  showLoginMode,
-  showRecoveryMode,
-} from './ui/auth-view.js';
+import { showLoginMode } from './ui/auth-view.js';
 import { clearEditor, fillEditor, readEditor, setupOptionEditor } from './ui/editor.js';
 import { bindStaticEvents } from './ui/events.js';
 import {
@@ -53,6 +47,15 @@ const state = {
 };
 
 const filters = () => readFilters();
+
+function resetSessionState() {
+  state.user = null;
+  state.items = [];
+  state.currentId = null;
+  refreshSourceFilter([]);
+}
+
+const passwordRecovery = createPasswordRecoveryHandlers({ resetSessionState });
 
 function renderActivePanel() {
   const currentFilters = filters();
@@ -229,45 +232,6 @@ async function handleRestoreDefault() {
   }
 }
 
-async function handlePasswordRecovery(session) {
-  state.user = null;
-  state.items = [];
-  state.currentId = null;
-  setAppVisible(false);
-  showRecoveryMode();
-  recoveryMessage(session ? '重置链接已验证，请设置新密码。' : '正在验证密码重置链接…');
-}
-
-async function handleRecoverySubmit({ password, confirmPassword }) {
-  if (password !== confirmPassword) {
-    recoveryMessage('两次输入的新密码不一致。', true);
-    return;
-  }
-
-  recoveryMessage('正在更新密码…');
-  const result = await updateRecoveredPassword(password);
-  if (!result.ok) {
-    recoveryMessage(result.message, true);
-    return;
-  }
-
-  clearRecoveryLocation();
-  clearRecoveryForm();
-  showLoginMode();
-  await signOut();
-  const loginPassword = document.getElementById('authPassword');
-  if (loginPassword) loginPassword.value = '';
-  authMessage(result.message);
-}
-
-async function handleCancelRecovery() {
-  clearRecoveryLocation();
-  clearRecoveryForm();
-  showLoginMode();
-  await signOut();
-  authMessage('已返回登录。');
-}
-
 async function handleSession(session) {
   state.user = session?.user || null;
   setAppVisible(Boolean(state.user));
@@ -278,9 +242,7 @@ async function handleSession(session) {
   }
 
   showLoginMode();
-  state.items = [];
-  state.currentId = null;
-  refreshSourceFilter([]);
+  resetSessionState();
   authMessage('首次使用请注册；已有账号可直接登录。');
 }
 
@@ -289,8 +251,8 @@ function bindEvents() {
     onSignIn: ({ email, password }) => void signIn(email, password),
     onSignUp: ({ email, password }) => void signUp(email, password),
     onForgotPassword: ({ email }) => void requestPasswordReset(email),
-    onRecoverySubmit: handleRecoverySubmit,
-    onCancelRecovery: () => void handleCancelRecovery(),
+    onRecoverySubmit: passwordRecovery.onRecoverySubmit,
+    onCancelRecovery: () => void passwordRecovery.onCancelRecovery(),
     onSignOut: () => void signOut(),
     onTab: activateTab,
     onSourceFilter: () => {
@@ -323,7 +285,7 @@ async function bootstrap() {
   try {
     await initializeAuth({
       onSession: handleSession,
-      onPasswordRecovery: handlePasswordRecovery,
+      onPasswordRecovery: passwordRecovery.onPasswordRecovery,
     });
   } catch (error) {
     console.error(error);
