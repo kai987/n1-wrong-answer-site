@@ -24,7 +24,19 @@
         <button class="btn primary" type="submit" id="signInBtn">登录</button>
         <button class="btn" type="button" id="signUpBtn">注册</button>
       </div>
+      <div class="auth-helper-actions"><button class="auth-link" type="button" id="forgotPasswordBtn">忘记密码？</button></div>
       <p class="note" id="authMessage">首次使用请注册；如果 Supabase 开启了邮箱确认，请先点击验证邮件中的链接。</p>
+    </form>
+    <form id="recoveryForm" class="auth-form is-hidden" aria-labelledby="recoveryTitle">
+      <h2 id="recoveryTitle">设置新密码</h2>
+      <p class="auth-recovery-copy">请输入新的登录密码。更新成功后，需要使用新密码重新登录。</p>
+      <div class="field"><label for="recoveryPassword">新密码</label><input class="control" id="recoveryPassword" type="password" autocomplete="new-password" minlength="12" required placeholder="至少 12 位"></div>
+      <div class="field"><label for="recoveryPasswordConfirm">确认新密码</label><input class="control" id="recoveryPasswordConfirm" type="password" autocomplete="new-password" minlength="12" required placeholder="再次输入新密码"></div>
+      <div class="auth-actions">
+        <button class="btn primary" type="submit">更新密码</button>
+        <button class="btn" type="button" id="cancelRecoveryBtn">返回登录</button>
+      </div>
+      <p class="note" id="recoveryMessage">请从密码重置邮件中的链接进入此页面。</p>
     </form>
   </section>
 </div>
