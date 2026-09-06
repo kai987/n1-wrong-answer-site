@@ -40,14 +40,7 @@ html[data-theme="dark"]{
 
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic UI","Yu Gothic",Meiryo,sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  line-height:1.6;
-  transition:background-color .2s ease,color .2s ease;
-}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic UI","Yu Gothic",Meiryo,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;transition:background-color .2s ease,color .2s ease}
 button,input,select,textarea{font:inherit}
 button{cursor:pointer}
 .is-hidden{display:none!important}
@@ -60,8 +53,13 @@ button{cursor:pointer}
 .eyebrow{margin:0;color:var(--accent);font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
 .auth-copy{margin:0;color:var(--muted);font-size:15px}
 .auth-form{border-left:1px solid var(--border);padding-left:28px}
+.auth-form h2{margin:0 0 6px;font-size:20px;line-height:1.3}
+.auth-recovery-copy{margin:0 0 16px;color:var(--muted);font-size:13px;line-height:1.6}
 .auth-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}
 .auth-actions .btn{flex:1}
+.auth-helper-actions{display:flex;justify-content:flex-end;margin-top:8px}
+.auth-link{border:0;background:transparent;color:var(--accent);padding:4px 0;font-weight:700}
+.auth-link:hover{text-decoration:underline}
 .error-text{color:var(--danger)!important}
 .sync-state{display:inline-flex;align-items:center;min-height:42px;padding:0 9px;color:var(--muted);font-size:12px;font-weight:700}
 .sync-state[data-kind="ok"]{color:var(--good)}
