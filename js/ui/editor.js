@@ -2,6 +2,17 @@ import { DEFAULT_SOURCE_EXAM } from '../constants.js';
 import { dateOnly, isoToday, normalizeSource, optLabel } from '../utils.js';
 import { getOptionExplanations } from '../questions.js';
 
+function syncReadingPassageField() {
+  const category = document.getElementById('qCategory');
+  const field = document.getElementById('readingPassageField');
+  const passage = document.getElementById('qPassage');
+  if (!category || !field || !passage) return;
+
+  const isReading = category.value === '読解';
+  field.classList.toggle('is-hidden', !isReading);
+  passage.required = isReading;
+}
+
 export function setupOptionEditor() {
   const editor = document.getElementById('optionEditor');
   if (!editor) return;
@@ -14,6 +25,9 @@ export function setupOptionEditor() {
         <textarea class="control option-explanation-input" id="optEx${number}" required placeholder="解释这个选项为什么正确或错误"></textarea>
       </div>
     </div>`).join('');
+
+  document.getElementById('qCategory')?.addEventListener('change', syncReadingPassageField);
+  syncReadingPassageField();
 }
 
 export function clearEditor() {
@@ -23,10 +37,12 @@ export function clearEditor() {
   document.getElementById('qSourceExam').value = DEFAULT_SOURCE_EXAM;
   document.getElementById('qUserAnswer').value = '1';
   document.getElementById('qCorrectAnswer').value = '1';
+  document.getElementById('qPassage').value = '';
   [1, 2, 3, 4].forEach(number => {
     const input = document.getElementById(`optEx${number}`);
     if (input) input.value = '';
   });
+  syncReadingPassageField();
 }
 
 export function fillEditor(question) {
@@ -36,6 +52,7 @@ export function fillEditor(question) {
   document.getElementById('qNumber').value = question.number;
   document.getElementById('qCategory').value = question.category;
   document.getElementById('qSubtype').value = question.subtype || '';
+  document.getElementById('qPassage').value = question.passage || '';
   document.getElementById('qStem').value = question.stem;
   document.getElementById('qContext').value = question.context || '';
   question.options.forEach((option, index) => {
@@ -49,6 +66,7 @@ export function fillEditor(question) {
   document.getElementById('qExplanation').value = question.explanation;
   document.getElementById('qWrongReason').value = question.wrongReason;
   document.getElementById('qKeyPoint').value = question.keyPoint || '';
+  syncReadingPassageField();
 }
 
 export function readEditor(existingQuestion = null) {
@@ -59,6 +77,7 @@ export function readEditor(existingQuestion = null) {
     number: Number(document.getElementById('qNumber').value),
     category: document.getElementById('qCategory').value,
     subtype: document.getElementById('qSubtype').value.trim(),
+    passage: document.getElementById('qPassage').value.trim(),
     stem: document.getElementById('qStem').value.trim(),
     context: document.getElementById('qContext').value.trim(),
     options: [1, 2, 3, 4].map(number => document.getElementById(`opt${number}`).value.trim()),
