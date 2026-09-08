@@ -16,6 +16,17 @@ test('every seed question has one source and four options with four explanations
   }
 });
 
+test('every reading seed question includes the full article passage', () => {
+  const expectedReadingQuestions = [46, 53, 57, 59, 61, 62, 64];
+  const reading = SEED_QUESTIONS.filter(question => question.category === '読解');
+  assert.deepEqual(reading.map(question => question.number), expectedReadingQuestions);
+  for (const question of reading) {
+    assert.ok(question.passage.length > 100, `Q${question.number} passage is missing or too short`);
+  }
+  assert.equal(SEED_QUESTIONS.find(question => question.number === 57).passage, SEED_QUESTIONS.find(question => question.number === 59).passage);
+  assert.equal(SEED_QUESTIONS.find(question => question.number === 62).passage, SEED_QUESTIONS.find(question => question.number === 64).passage);
+});
+
 test('seed question numbers are unique within the exam source', () => {
   const keys = SEED_QUESTIONS.map(question => `${question.sourceExam}:${question.number}`);
   assert.equal(new Set(keys).size, keys.length);
