@@ -25,6 +25,7 @@ export function getOptionExplanations(question) {
 export function seedQuestions() {
   return SEED_QUESTIONS.map(question => ({
     ...question,
+    passage: String(question.passage || ''),
     options: [...question.options],
     optionExplanations: [...question.optionExplanations],
   }));
@@ -40,6 +41,7 @@ export function rowToItem(row) {
     page: row.page || '—',
     stem: row.stem,
     context: row.context || '',
+    passage: row.passage || '',
     options: row.options || [],
     optionExplanations: row.option_explanations || ['', '', '', ''],
     userAnswer: row.user_answer,
@@ -69,6 +71,7 @@ export function itemToRow(question) {
     page: String(question.page || ''),
     stem: question.stem,
     context: question.context || null,
+    passage: question.passage || null,
     options: question.options,
     option_explanations: getOptionExplanations(question),
     user_answer: question.userAnswer,
