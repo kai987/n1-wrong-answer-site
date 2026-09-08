@@ -2,6 +2,7 @@ import { DEFAULT_SOURCE_EXAM } from '../constants.js';
 import { normalizeSource } from '../utils.js';
 import { BASE_QUESTIONS } from './base-questions.js';
 import { OPTION_EXPLANATIONS } from './option-explanations.js';
+import { READING_PASSAGES } from './reading-passages.js';
 
 function explanationsFor(question) {
   const sourceExam = normalizeSource(question.sourceExam || DEFAULT_SOURCE_EXAM);
@@ -11,9 +12,15 @@ function explanationsFor(question) {
     : ['', '', '', ''];
 }
 
+function passageFor(question) {
+  const sourceExam = normalizeSource(question.sourceExam || DEFAULT_SOURCE_EXAM);
+  return String(READING_PASSAGES[sourceExam]?.[Number(question.number)] || question.passage || '').trim();
+}
+
 export const SEED_QUESTIONS = BASE_QUESTIONS.map(question => ({
   ...question,
   sourceExam: normalizeSource(question.sourceExam || DEFAULT_SOURCE_EXAM),
+  passage: passageFor(question),
   options: [...question.options],
   optionExplanations: explanationsFor(question),
 }));
