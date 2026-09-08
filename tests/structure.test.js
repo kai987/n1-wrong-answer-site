@@ -6,10 +6,14 @@ const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const css = readFileSync(new URL('../styles.css', import.meta.url), 'utf8');
 const repository = readFileSync(new URL('../js/repository.js', import.meta.url), 'utf8');
 const render = readFileSync(new URL('../js/ui/render.js', import.meta.url), 'utf8');
+const editor = readFileSync(new URL('../js/ui/editor.js', import.meta.url), 'utf8');
+const questions = readFileSync(new URL('../js/questions.js', import.meta.url), 'utf8');
+const validator = readFileSync(new URL('../js/validator.js', import.meta.url), 'utf8');
 const auth = readFileSync(new URL('../js/auth.js', import.meta.url), 'utf8');
 const authErrors = readFileSync(new URL('../js/auth-errors.js', import.meta.url), 'utf8');
 const constants = readFileSync(new URL('../js/constants.js', import.meta.url), 'utf8');
 const schema = readFileSync(new URL('../supabase/schema.sql', import.meta.url), 'utf8');
+const readingMigration = readFileSync(new URL('../supabase/migrations/20260908_add_reading_passage.sql', import.meta.url), 'utf8');
 
 test('page loads one consolidated application stylesheet without manual version query strings', () => {
   const stylesheets = [...html.matchAll(/<link\s+rel="stylesheet"\s+href="([^"]+)"/g)].map(match => match[1]);
@@ -57,6 +61,22 @@ test('authentication errors are localized instead of exposing raw provider messa
   assert.equal(auth.includes('authMessage(error.message'), false);
   assert.match(authErrors, /Invalid login credentials/i);
   assert.match(authErrors, /邮箱或密码错误，请重新输入/);
+});
+
+test('reading questions have a dedicated passage field and do not treat summaries as the article', () => {
+  assert.match(html, /id="readingPassageField"/);
+  assert.match(html, /id="qPassage"/);
+  assert.match(editor, /category\.value === '読解'/);
+  assert.match(editor, /passage\.required = isReading/);
+  assert.match(questions, /passage: row\.passage \|\| ''/);
+  assert.match(questions, /passage: question\.passage \|\| null/);
+  assert.match(validator, /读解文章/);
+  assert.match(render, /reading-passage-title">文章/);
+  assert.match(render, /这道读解题尚未录入原文/);
+  assert.match(render, /文章要点 \/ 现有摘要/);
+  assert.match(css, /\.reading-passage\{/);
+  assert.match(readingMigration, /add column if not exists passage text/);
+  assert.match(readingMigration, /length\(coalesce\(e->>'passage',''\)\) > 100000/);
 });
 
 test('default exam initialization is one-time and transaction-backed', () => {
