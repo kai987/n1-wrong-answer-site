@@ -42,6 +42,8 @@ export function filterQuestions(items, filters, today = todayString()) {
       question.number,
       question.category,
       question.subtype,
+      question.passage,
+      question.context,
       question.stem,
       question.keyPoint,
       ...(question.options || []),
