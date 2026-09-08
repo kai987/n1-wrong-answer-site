@@ -71,6 +71,27 @@ function optionAnalysisHtml(question) {
     </section>`;
 }
 
+function preQuestionMaterialHtml(question) {
+  if (question.category === '読解') {
+    if (question.passage) {
+      return `<section class="reading-passage">
+        <div class="reading-passage-title">文章</div>
+        <div class="reading-passage-body">${esc(question.passage)}</div>
+      </section>`;
+    }
+    return `<section class="reading-passage reading-passage-missing">
+      <div class="reading-passage-title">文章</div>
+      <p>这道读解题尚未录入原文。请在“编辑”中补充完整文章后再进行正式复习。</p>
+    </section>`;
+  }
+  return question.context ? `<div class="context">${esc(question.context)}</div>` : '';
+}
+
+function readingSummaryHtml(question) {
+  if (question.category !== '読解' || !question.context) return '';
+  return `<div class="ex-block reading-summary"><h4>文章要点 / 现有摘要</h4><p>${esc(question.context)}</p></div>`;
+}
+
 export function renderReview({ state, items, filters, onReviewResult, onEdit }) {
   const queue = buildDueQueue(items, filters);
   const main = document.getElementById('reviewMain');
@@ -98,7 +119,7 @@ export function renderReview({ state, items, filters, onReviewResult, onEdit }) 
       <span class="pill">PDF p.${esc(question.page || '—')}</span>
     </div>
     <h2 class="question-title">先重新做一遍，再看解析</h2>
-    ${question.context ? `<div class="context">${esc(question.context)}</div>` : ''}
+    ${preQuestionMaterialHtml(question)}
     <p class="stem">${esc(question.stem)}</p>
     <div class="options">
       ${question.options.map((option, index) => `<button type="button" class="option" data-choice="${index + 1}">
@@ -108,6 +129,7 @@ export function renderReview({ state, items, filters, onReviewResult, onEdit }) 
     <div class="reveal"><button type="button" class="btn primary" id="revealBtn">显示我的旧答案与解析</button></div>
     <div class="explain" id="explainBox">
       <div class="explain-grid">
+        ${readingSummaryHtml(question)}
         <div class="ex-block good"><h4>正确选项 <span class="answer-option-number">${optLabel(question.correctAnswer)}</span></h4><p>${esc(question.options[question.correctAnswer - 1])}</p></div>
         <div class="ex-block bad"><h4>你当时选了 <span class="answer-option-number">${optLabel(question.userAnswer)}</span></h4><p>${esc(question.options[question.userAnswer - 1])}</p></div>
         <div class="ex-block good"><h4>为什么正确</h4><p>${esc(question.explanation)}</p></div>
