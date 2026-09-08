@@ -16,6 +16,7 @@ export const IMPORT_LIMITS = Object.freeze({
   page: 50,
   stem: 10000,
   context: 50000,
+  passage: 100000,
   option: 2000,
   optionExplanation: 10000,
   explanation: 20000,
