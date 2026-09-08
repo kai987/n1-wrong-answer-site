@@ -32,6 +32,7 @@ js/
 ├── data/
 │   ├── base-questions.js
 │   ├── option-explanations.js
+│   ├── reading-passages.js
 │   └── seed-data.js
 └── ui/
     ├── auth-view.js       # 登录 / 设置新密码视图切换
@@ -42,7 +43,7 @@ js/
 
 ## 读解文章模型
 
-`読解` 不再把 `context` 当成文章正文。题目模型新增独立字段：
+`読解` 不再把 `context` 当成文章正文。题目模型使用独立字段：
 
 ```text
 passage  # 完整读解文章正文
@@ -66,7 +67,7 @@ stem     # 问题
 
 编辑器中选择 `読解` 时，会显示“读解文章正文”输入框，并要求填写完整文章。旧 JSON 备份没有 `passage` 仍可正常导入；新备份会保存 `passage`。
 
-当前初始题库中的 7 道读解错题（Q46、53、57、59、61、62、64）原数据只有摘要/要点，没有完整原文。网站会明确显示“文章尚未录入”，不会把摘要伪装成原文。需要根据原始试卷 PDF 或用户提供的文章文本再补全。
+2025-12 初始题库中的 7 道读解错题 Q46、53、57、59、61、62、64 已依据原始试卷 PDF 补入完整文章。Q57 / Q59 共用同一篇长文，Q62 / Q64 共用同一篇广告长文。
 
 ## CSS 与 CSP
 
@@ -94,17 +95,20 @@ style-src 'self'
 supabase/schema.sql
 ```
 
-读解文章字段的增量迁移位于：
+读解文章相关增量迁移位于：
 
 ```text
 supabase/migrations/20260908_add_reading_passage.sql
+supabase/migrations/20260908_persist_reading_passages_in_seed_rpcs.sql
 ```
 
-现有 Supabase 项目已经应用该迁移。新建项目时先运行 `schema.sql`，再运行 migrations 目录中的后续迁移。
+现有 Supabase 项目已经应用这些迁移。新建项目时先运行 `schema.sql`，再运行 migrations 目录中的后续迁移。
 
 ## 首次题库初始化
 
-初始 `2025-12` 题库使用 `user_seed_state` 和 `initialize_wrong_answers_exam(...)` 保证每个用户只自动初始化一次。用户以后主动删除全部 `2025-12` 后，重新登录不会自动恢复；需要手动点击“恢复 2025-12 初始35题”。
+初始 `2025-12` 题库使用 `user_seed_state` 和 `initialize_wrong_answers_exam(...)` 保证每个用户只自动初始化一次。当前 seed 版本为 v2，包含完整读解文章。
+
+用户以后主动删除全部 `2025-12` 后，重新登录不会自动恢复；需要手动点击“恢复 2025-12 初始35题”。恢复操作同样会写入完整读解文章。
 
 ## Auth 与找回密码
 
@@ -143,7 +147,7 @@ Invalid login credentials
 - `user_seed_state` 开启 RLS，只允许已认证用户访问自己的状态。
 - JSON 导入先在浏览器校验，再通过 `replace_wrong_answers(jsonb)` 事务写入。
 - `passage` 最大 100000 字符，并在数据库与前端同时校验。
-- 首次初始化和恢复初始题库均使用事务 RPC。
+- 首次初始化和恢复初始题库均使用事务 RPC，并保留 `passage`。
 - CSP 不允许内联脚本、内联样式、object/frame/worker/media。
 - Supabase SDK 使用固定版本 `2.112.4`。
 - 前端不保存密码。
@@ -162,7 +166,7 @@ npm run check
 npm test
 ```
 
-当前测试覆盖包括：复习算法、题库完整性、CSP、登录错误中文化、找回密码、一次性 seed、事务恢复、select 箭头、读解 `passage` 字段、读解编辑器和文章/摘要分离渲染。
+当前测试覆盖包括：复习算法、题库完整性、CSP、登录错误中文化、找回密码、一次性 seed、事务恢复、select 箭头、读解 `passage` 字段、读解编辑器、文章/摘要分离渲染，以及 7 道初始读解题必须包含完整文章。
 
 ## GitHub Pages
 
@@ -172,4 +176,4 @@ npm test
 ## 数据说明
 
 - 問題7 Q41–43 的原始 PDF 选项发生错位，本网站使用后续核对的还原版选项。
-- Q46、53、57、59、61、62、64 当前只有文章摘要，完整读解原文尚未录入。
+- Q46、53、57、59、61、62、64 的读解文章来自上传的 2025-12 N1 问题用纸，并保留试卷中的（中略）与注释结构。
