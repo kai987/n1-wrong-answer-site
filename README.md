@@ -40,117 +40,82 @@ js/
     └── render.js          # 统计、复习区、错题列表和 tab 渲染
 ```
 
-业务代码只通过 `js/data/seed-data.js` 消费初始题库。根目录不再存在旧式全局题库、桥接或运行时覆盖脚本。
+## 读解文章模型
 
-大体数据流为：
+`読解` 不再把 `context` 当成文章正文。题目模型新增独立字段：
 
 ```text
-用户操作
-  ↓
-ui/events.js
-  ↓
-main.js
-  ↓
-review / validator / io / editor / password-recovery
-  ↓
-repository.js / Supabase Auth
-  ↓
-Supabase + RLS + transaction RPC
-  ↓
-state
-  ↓
-ui/render.js
+passage  # 完整读解文章正文
+context  # 文章摘要 / 要点 / 补充材料
+stem     # 问题
 ```
+
+复习时顺序为：
+
+```text
+文章 passage
+↓
+问题 stem
+↓
+四个选项
+↓
+显示解析后才出现文章摘要 context
+```
+
+这样不会再用摘要替代文章，也不会在作答前通过摘要泄露答案。
+
+编辑器中选择 `読解` 时，会显示“读解文章正文”输入框，并要求填写完整文章。旧 JSON 备份没有 `passage` 仍可正常导入；新备份会保存 `passage`。
+
+当前初始题库中的 7 道读解错题（Q46、53、57、59、61、62、64）原数据只有摘要/要点，没有完整原文。网站会明确显示“文章尚未录入”，不会把摘要伪装成原文。需要根据原始试卷 PDF 或用户提供的文章文本再补全。
 
 ## CSS 与 CSP
 
 页面最终样式收敛到单一 `styles.css`，不再依赖后加载 CSS 覆盖旧规则。
 
-页面和渲染器不使用 `style="..."` 或 `element.style.*`。选中状态、队列按钮布局、列表最小宽度和表单间距都通过 class 管理。因此 CSP 已收紧为：
+页面和渲染器不使用 `style="..."` 或 `element.style.*`，CSP 已收紧为：
 
 ```text
 style-src 'self'
 ```
 
-不再需要 `style-src 'self' 'unsafe-inline'`。
-
-下拉框箭头使用单个 SVG background，并在明暗主题中显式保持 `background-repeat:no-repeat`。夜间控件只修改 `background-color`，避免 `background` shorthand 把箭头重复方式重置为 `repeat`。
-
-## 静态资源加载
-
-`index.html` 不手工维护 `?v=1`、`?v=2` 等缓存版本号。应用资源使用稳定路径：
-
-```text
-styles.css
-theme-init.js
-theme.js
-js/main.js
-```
-
-结构测试会阻止重新引入手工 `?v=` 参数。
+下拉框箭头使用单个 SVG background，并在明暗主题中显式保持 `background-repeat:no-repeat`。
 
 ## Supabase 项目
 
 项目 ref：`flpmblfscgcbrprwwckz`
 
-前端只使用 Supabase publishable key。该 key 设计为可公开用于浏览器客户端；真正的数据权限由登录状态、Postgres grants 和 RLS 控制。绝不要把 `service_role` / secret key 放进前端或 GitHub 仓库。
+前端只使用 Supabase publishable key。真正的数据权限由登录状态、Postgres grants 和 RLS 控制。绝不要把 `service_role` / secret key 放进前端或 GitHub 仓库。
+
+### 数据库更新
+
+基础 schema 位于：
+
+```text
+supabase/schema.sql
+```
+
+读解文章字段的增量迁移位于：
+
+```text
+supabase/migrations/20260908_add_reading_passage.sql
+```
+
+现有 Supabase 项目已经应用该迁移。新建项目时先运行 `schema.sql`，再运行 migrations 目录中的后续迁移。
 
 ## 首次题库初始化
 
-初始 `2025-12` 题库不再通过“查询题数为 0 就插入”的方式判断。
-
-数据库新增：
-
-```text
-user_seed_state
-├── user_id
-├── source_exam
-├── seed_version
-├── initialized_at
-└── updated_at
-```
-
-首次登录时，前端调用：
-
-```text
-initialize_wrong_answers_exam(source, seed_version, questions)
-```
-
-该 RPC 在同一个 PostgreSQL transaction 中：
-
-1. 尝试创建当前用户 + 来源的 seed state。
-2. 如果已经初始化过，直接返回，不再自动插题。
-3. 如果从未初始化，则校验并写入初始题库。
-4. 任意一步失败，seed state 和题目写入一起回滚。
-
-因此：
-- 多设备第一次同时登录不会重复插入。
-- 用户以后主动删除全部 `2025-12` 后，重新登录不会自动恢复。
-- 需要恢复时，必须主动点击“恢复 2025-12 初始35题”。
-- 手动恢复通过版本化事务 RPC 完成，并同步更新 seed state。
-
-升级现有数据库时，会为已经拥有 `2025-12` 数据的用户自动回填 seed state，避免升级后再次初始化。
-
-## 首次配置数据库
-
-1. 打开 Supabase Dashboard。
-2. 进入 **SQL Editor**。
-3. 打开仓库中的 `supabase/schema.sql`。
-4. 将完整 SQL 粘贴到 SQL Editor 并运行一次。
-5. 在 **Authentication > Providers > Email** 确认 Email 登录已启用。
-
-数据库表创建成功后，新用户第一次登录会自动初始化初始 35 道错题一次。
+初始 `2025-12` 题库使用 `user_seed_state` 和 `initialize_wrong_answers_exam(...)` 保证每个用户只自动初始化一次。用户以后主动删除全部 `2025-12` 后，重新登录不会自动恢复；需要手动点击“恢复 2025-12 初始35题”。
 
 ## Auth 与找回密码
 
-前端的注册策略集中在 `AUTH_POLICY`：
+前端注册策略集中在 `AUTH_POLICY`：
 
 ```js
 registrationEnabled: true
 registrationMinPasswordLength: 12
 ```
 
-登录失败不再直接显示 Supabase 原始英文错误。例如：
+登录失败不会直接显示 Supabase 原始英文错误。例如：
 
 ```text
 Invalid login credentials
@@ -158,62 +123,30 @@ Invalid login credentials
 邮箱或密码错误，请重新输入。
 ```
 
-其他常见错误（邮箱未验证、发送频率过高、账号已注册等）也通过 `auth-errors.js` 转换为中文提示。
+“忘记密码”使用 `resetPasswordForEmail` → `PASSWORD_RECOVERY` → `updateUser({ password })` 完成。
 
-“忘记密码”流程：
-
-```text
-输入邮箱
-↓
-点击「忘记密码？」
-↓
-Supabase resetPasswordForEmail
-↓
-邮件中的重置链接回到本站
-↓
-PASSWORD_RECOVERY session
-↓
-输入两次新密码
-↓
-updateUser({ password })
-↓
-退出恢复 session，并使用新密码重新登录
-```
-
-发送重置邮件后的提示使用“如果该邮箱已注册……”的通用措辞，不通过 UI 暴露某个邮箱是否真实存在于账号系统中。
-
-`AUTH_POLICY` 是 **前端 UX / 防误操作策略，不是服务端安全边界**。直接调用 Supabase Auth API 的客户端不能依赖这段前端代码来限制密码或注册。
-
-生产环境应在 Supabase Dashboard 中同步配置：
-- 服务端最小密码长度（建议至少 12 位）。
-- 如果网站只给固定账号使用，关闭公开 Email signup。
-- 套餐支持时启用 Leaked Password Protection。
-
-当前仓库代码不会假装这些 Dashboard 设置已经生效。
+`AUTH_POLICY` 只是前端 UX 策略，服务端最小密码长度、公开注册和 Leaked Password Protection 仍应在 Supabase Dashboard 配置。
 
 ## 使用
 
 1. 注册 / 登录；忘记密码时可从登录页发送重置邮件。
-2. “今日复习”重新作答并查看：正确选项、原来的错误选项、正确解说、错误原因、四个选项逐项解析和复习重点。
-3. “全部错题”搜索、筛选、编辑和删除。
-4. “添加 / 编辑”持续加入未来的新错题。
-5. 所有数据写入 Supabase，可跨设备同步。
-6. 仍可通过“导出 JSON / 导入 JSON”做离线备份。
+2. “今日复习”重新作答并查看解析。
+3. `読解` 会先显示完整文章，再显示问题和选项；摘要只在解析后显示。
+4. “全部错题”搜索、筛选、编辑和删除。
+5. “添加 / 编辑”持续加入未来的新错题；读解题必须填写文章正文。
+6. 所有数据写入 Supabase，可跨设备同步。
+7. 可通过“导出 JSON / 导入 JSON”做离线备份。
 
 ## 安全与事务设计
 
-- `anon` 对 `wrong_answers` 没有表权限；`authenticated` 只有 SELECT / INSERT / UPDATE / DELETE。
-- `user_seed_state` 开启 RLS，只允许已认证用户读取/写入自己的状态。
-- 所有 CRUD RLS policy 都要求 `auth.uid() = user_id`。
-- JSON 导入先在浏览器校验文件大小、题数、来源、分类、字段长度、选项数量与日期格式。
-- 云端全量导入通过 `replace_wrong_answers(jsonb)` RPC 在一个 transaction 中完成。
-- “恢复 2025-12 初始35题”通过 `replace_wrong_answers_for_exam(text,jsonb,integer)` 事务替换指定来源并更新 seed version。
-- 首次初始化通过 `initialize_wrong_answers_exam(text,integer,jsonb)` 保证只执行一次。
-- 以上 RPC 只允许 `authenticated` 执行，`anon` 无执行权限。
-- 数据库还有 CHECK constraints，防止绕过前端直接提交非法记录。
+- `anon` 对 `wrong_answers` 没有表权限。
+- `user_seed_state` 开启 RLS，只允许已认证用户访问自己的状态。
+- JSON 导入先在浏览器校验，再通过 `replace_wrong_answers(jsonb)` 事务写入。
+- `passage` 最大 100000 字符，并在数据库与前端同时校验。
+- 首次初始化和恢复初始题库均使用事务 RPC。
 - CSP 不允许内联脚本、内联样式、object/frame/worker/media。
 - Supabase SDK 使用固定版本 `2.112.4`。
-- 前端只保存主题偏好和 Supabase Auth 正常会话，不保存密码。
+- 前端不保存密码。
 
 ## 间隔复习
 
@@ -229,32 +162,7 @@ npm run check
 npm test
 ```
 
-当前测试覆盖：
-- 试卷来源规范化
-- 1 → 3 → 7 → 14 → 30 天复习间隔
-- “还需复习”重置逻辑
-- 到期判断
-- 逐项解析搜索
-- 今日队列与无到期题时的 fallback 顺序
-- 初始题库固定为 35 题
-- 每道初始题固定包含 4 个选项 + 4 条逐项解释
-- `2025-12` 来源与题号唯一性
-- 問題7 Q41–43 正确答案保护
-- `index.html` 只加载一个应用样式表和一个模块入口
-- CSP 不允许 `unsafe-inline` 样式
-- HTML 和动态 renderer 不得产生 inline style
-- 资源 URL 不使用手工 `?v=` 版本参数
-- 夜间模式 select 不会重复铺设箭头 background
-- 首次 seed 必须通过一次性事务 RPC，不得恢复为“count=0 就插入”
-- 恢复初始题库必须通过版本化事务 RPC
-- Auth UI 策略必须集中维护
-- 登录错误必须经过中文友好映射，不直接展示 `Invalid login credentials`
-- 登录页必须包含忘记密码入口和设置新密码表单
-- Supabase recovery 流程必须包含 `resetPasswordForEmail`、`PASSWORD_RECOVERY` 和 `updateUser({ password })`
-- `main.js` 保持为协调层，I/O、密码恢复和静态事件绑定位于独立模块
-- 已删除的全局题库/桥接/覆盖 CSS 文件不会重新出现
-
-GitHub Pages 工作流会先执行检查，只有通过后才部署。
+当前测试覆盖包括：复习算法、题库完整性、CSP、登录错误中文化、找回密码、一次性 seed、事务恢复、select 箭头、读解 `passage` 字段、读解编辑器和文章/摘要分离渲染。
 
 ## GitHub Pages
 
@@ -264,3 +172,4 @@ GitHub Pages 工作流会先执行检查，只有通过后才部署。
 ## 数据说明
 
 - 問題7 Q41–43 的原始 PDF 选项发生错位，本网站使用后续核对的还原版选项。
+- Q46、53、57、59、61、62、64 当前只有文章摘要，完整读解原文尚未录入。
