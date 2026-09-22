@@ -21,6 +21,12 @@ test('page loads one consolidated application stylesheet without manual version 
   assert.equal(/(?:src|href)="[^"]+\?v=\d+/.test(html), false);
 });
 
+test('page declares the N1 favicon and matching theme color', () => {
+  assert.match(html, /<link rel="icon" href="favicon\.svg" type="image\/svg\+xml" \/>/);
+  assert.match(html, /<meta name="theme-color" content="#1f5f4a" \/>/);
+  assert.equal(existsSync(new URL('../favicon.svg', import.meta.url)), true);
+});
+
 test('page uses only the modular application entry for business code', () => {
   assert.match(html, /<script type="module" src="js\/main\.js"><\/script>/);
   for (const legacy of ['data.js', 'seed-bridge.js', 'option-explanations.js', 'app.js', 'security.js', 'option-analysis.js']) {
